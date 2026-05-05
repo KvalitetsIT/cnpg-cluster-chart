@@ -1,0 +1,4 @@
+imageName: ghcr.io/cloudnative-pg/postgresql:16.6
+instances: 1
+storage:
+  size: 1Gi

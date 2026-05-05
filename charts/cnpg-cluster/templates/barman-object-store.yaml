@@ -1,0 +1,13 @@
+{{- if .Values.objectStore.enabled }}
+{{- $name := include "cnpg.fullname" . }}
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ $name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+spec:
+  {{- toYaml (omit .Values.objectStore "enabled") | nindent 2 }}
+{{- end }}

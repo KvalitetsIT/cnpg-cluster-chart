@@ -1,0 +1,19 @@
+{{- $clusterName := include "cnpg.fullname" . }}
+{{- $root := . }}
+{{- range .Values.backup.scheduledBackups }}
+{{- if ne .enabled false }}
+{{- $backupSpec := omit . "name" "enabled" }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ printf "%s-%s" $clusterName .name | quote }}
+  namespace: {{ $root.Release.Namespace | quote }}
+  labels:
+    {{- include "common.labels" $root | nindent 4 }}
+spec:
+  cluster:
+    name: {{ $clusterName | quote }}
+  {{- toYaml $backupSpec | nindent 2 }}
+{{- end }}
+{{- end }}

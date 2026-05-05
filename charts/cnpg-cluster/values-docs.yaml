@@ -1,0 +1,808 @@
+# -- Override the Cluster name. Defaults to the Helm release name.
+# @default -- ""
+# @section -- Cluster
+nameOverride: my-cluster
+
+metadata:
+  # -- Override the rendered name.
+  # @default -- .Release.Name
+  # @section -- Cluster
+  name: <override-name>
+  # -- Override the rendered namespace.
+  # @default -- .Release.Namespace
+  # @section -- Cluster
+  namespace: <override-namespace>
+  # -- Additional labels merged onto the Cluster. common.labels are always included.
+  # @default -- {}
+  # @section -- Cluster
+  labels:
+    <label-key>: <label-value>
+  # -- Annotations for the Cluster metadata.
+  # @default -- {}
+  # @section -- Cluster
+  annotations:
+    <annotation-key>: <annotation-value>
+
+# -- Number of PostgreSQL instances in the cluster.
+# @section -- Cluster
+instances: 3
+
+# -------------------------------------------------------------------------
+# Image
+# -------------------------------------------------------------------------
+
+# -- Container image. Takes precedence over imageCatalogRef.
+# @default -- ""
+# @section -- Cluster
+imageName: ghcr.io/cloudnative-pg/postgresql:16.6
+
+# @default -- IfNotPresent
+# @section -- Cluster
+imagePullPolicy: IfNotPresent
+
+# @default -- []
+# @section -- Cluster
+imagePullSecrets:
+  - name: my-registry-secret
+
+# -- Reference to an ImageCatalog or ClusterImageCatalog resource.
+# Mutually exclusive with imageName.
+# @default -- {}
+# @section -- Cluster
+imageCatalogRef:
+  apiGroup: postgresql.cnpg.io
+  kind: ImageCatalog  # or ClusterImageCatalog
+  name: my-catalog
+  major: 16
+
+# @default -- 26
+# @section -- Cluster
+postgresUID: 26
+# @default -- 26
+# @section -- Cluster
+postgresGID: 26
+
+# -------------------------------------------------------------------------
+# Storage
+# -------------------------------------------------------------------------
+
+storage:
+  # -- Size of the PVC for PostgreSQL data.
+  # @section -- Cluster
+  size: 10Gi
+  # @default -- ""
+  # @section -- Cluster
+  storageClass: standard
+  # -- Full PVC template override. Takes precedence over size/storageClass.
+  # @default -- {}
+  # @section -- Cluster
+  pvcTemplate:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+
+# -- Dedicated WAL storage. Strongly recommended for production.
+# @default -- disabled
+# @section -- Cluster
+walStorage:
+  enabled: true
+  size: 2Gi
+  storageClass: fast-storage
+
+# @default -- {}
+# @section -- Cluster
+ephemeralVolumesSizeLimit:
+  temporaryData: 1Gi
+  sharedMemory: 256Mi
+
+# -------------------------------------------------------------------------
+# PostgreSQL configuration
+# -------------------------------------------------------------------------
+
+postgresql:
+  # @default -- {}
+  # @section -- Cluster
+  parameters:
+    max_connections: "200"
+    shared_buffers: 256MB
+    work_mem: 4MB
+    wal_level: logical
+
+  # -- Lines appended to pg_hba.conf after the CNPG defaults.
+  # @default -- []
+  # @section -- Cluster
+  pg_hba:
+    - host all all 10.0.0.0/8 md5
+    - hostssl all all 0.0.0.0/0 scram-sha-256
+
+  # @default -- []
+  # @section -- Cluster
+  pg_ident:
+    - mymap /^(.*)@example\.com$ \1
+
+  # @default -- []
+  # @section -- Cluster
+  shared_preload_libraries:
+    - pg_stat_statements
+    - auto_explain
+
+  # @default -- {}
+  # @section -- Cluster
+  ldap:
+    server: ldap.example.com
+    scheme: ldaps
+    port: 636
+    tls: true
+    bindSearchAuth:
+      bindDN: cn=admin,dc=example,dc=com
+      bindPassword:
+        name: ldap-secret
+        key: password
+      baseDN: ou=users,dc=example,dc=com
+      searchAttribute: uid
+
+  # @default -- {}
+  # @section -- Cluster
+  syncReplicaElectionConstraint:
+    enabled: true
+    nodeLabelsAntiAffinity:
+      - topology.kubernetes.io/zone
+
+# -------------------------------------------------------------------------
+# Bootstrap
+# -------------------------------------------------------------------------
+
+# -- initdb bootstrap. Only one of initdb, recovery, or pgBaseBackup may be set.
+# Maps to spec.bootstrap.initdb.
+# @default -- {}
+# @section -- Cluster
+initdb:
+  database: app
+  owner: app
+  secret:
+    name: app-secret
+  encoding: UTF8
+  dataChecksums: true
+  postInitSQL:
+    - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+  postInitApplicationSQL:
+    - CREATE TABLE IF NOT EXISTS example (id SERIAL PRIMARY KEY);
+  postInitApplicationSQLRefs:
+    configMapRefs:
+      - name: init-sql
+        key: init.sql
+
+# -- Recovery from a backup or external cluster.
+# Maps to spec.bootstrap.recovery.
+# @default -- {}
+# @section -- Cluster
+recovery:
+  source: source-cluster
+  database: app
+  owner: app
+  secret:
+    name: app-secret
+  recoveryTarget:
+    targetTime: "2024-06-01 00:00:00.000000+00"
+    exclusive: false
+  # -- Alternatively, recover from VolumeSnapshots.
+  volumeSnapshots:
+    storage:
+      name: my-data-snapshot
+      kind: VolumeSnapshot
+      apiGroup: snapshot.storage.k8s.io
+    walStorage:
+      name: my-wal-snapshot
+      kind: VolumeSnapshot
+      apiGroup: snapshot.storage.k8s.io
+
+# -- Streaming replication bootstrap.
+# Maps to spec.bootstrap.pg_basebackup.
+# @default -- {}
+# @section -- Cluster
+pgBaseBackup:
+  source: source-cluster
+  database: app
+  owner: app
+  secret:
+    name: app-secret
+
+# -------------------------------------------------------------------------
+# Backup
+# -------------------------------------------------------------------------
+
+# @section -- Backup
+backup:
+  # -- Enable S3 barman backup.
+  # @default -- false
+  # @section -- Backup
+  enabled: true
+
+  # @default -- prefer-standby
+  # @section -- Backup
+  target: prefer-standby
+
+  # @default -- 30d
+  # @section -- Backup
+  retentionPolicy: 30d
+
+  s3:
+    # -- S3 bucket name.
+    # @section -- Backup
+    bucket: my-bucket
+
+    # -- Path prefix inside the bucket.
+    # @default -- /
+    # @section -- Backup
+    path: /my-cluster
+
+    # -- Custom endpoint for S3-compatible stores (MinIO, etc.).
+    # Leave empty for AWS S3.
+    # @default -- ""
+    # @section -- Backup
+    endpointURL: https://minio.example.com
+
+    # -- CA bundle for privately-signed endpoint certificates.
+    # @default -- {}
+    # @section -- Backup
+    endpointCA:
+      name: minio-ca-secret
+      key: ca.crt
+
+    secret:
+      # -- Name of an existing secret with S3 credentials.
+      # @section -- Backup
+      name: s3-credentials
+      # -- Key in the secret for the access key ID.
+      # @default -- ACCESS_KEY_ID
+      # @section -- Backup
+      accessKeyKey: ACCESS_KEY_ID
+      # -- Key in the secret for the secret access key.
+      # @default -- ACCESS_SECRET_KEY
+      # @section -- Backup
+      secretKeyKey: ACCESS_SECRET_KEY
+      # -- Optional key in the secret for the AWS region.
+      # Leave empty if not needed (e.g. MinIO or IRSA).
+      # @default -- ""
+      # @section -- Backup
+      regionKey: AWS_DEFAULT_REGION
+
+    # -- Use the pod's IAM role (IRSA / instance profile) instead of explicit credentials.
+    # @default -- false
+    # @section -- Backup
+    inheritFromIAMRole: false
+
+  wal:
+    # -- gzip | bzip2 | snappy
+    # @default -- gzip
+    # @section -- Backup
+    compression: gzip
+    # @default -- 1
+    # @section -- Backup
+    maxParallel: 8
+
+  data:
+    # -- gzip | bzip2 | snappy
+    # @default -- gzip
+    # @section -- Backup
+    compression: gzip
+    # @default -- 2
+    # @section -- Backup
+    jobs: 2
+
+  volumeSnapshot:
+    # -- Enable VolumeSnapshot-based backups (local disk).
+    # @default -- false
+    # @section -- Backup
+    enabled: true
+    # @default -- ""
+    # @section -- Backup
+    className: my-snapshot-class
+    # @default -- ""
+    # @section -- Backup
+    walClassName: my-wal-snapshot-class
+    # @default -- true
+    # @section -- Backup
+    online: true
+    # @default -- cluster
+    # @section -- Backup
+    snapshotOwnerReference: cluster
+
+  # -- List of ScheduledBackup resources. Each entry needs a name field.
+  # The rendered name will be <cluster-name>-<name>.
+  # @default -- []
+  # @section -- Backup
+  scheduledBackups:
+    - name: daily-s3
+      schedule: "0 0 0 * * *"
+      backupOwnerReference: self
+      method: barmanObjectStore
+      immediate: false
+      suspend: false
+
+    - name: daily-snapshot
+      schedule: "0 0 2 * * *"
+      backupOwnerReference: self
+      method: volumeSnapshot
+
+    # -- Plugin-based backup (barman-cloud plugin).
+    # -- Plugin-based backup (barman-cloud plugin). Use method: plugin.
+    - name: daily-plugin
+      schedule: "0 0 3 * * *"
+      backupOwnerReference: self
+      method: plugin
+      pluginConfiguration:
+        name: barman-cloud.cloudnative-pg.io
+
+# -------------------------------------------------------------------------
+# Plugins
+# -------------------------------------------------------------------------
+
+# -- Additional plugin configuration beyond what objectStore injects automatically.
+# A configured objectStore already generates a barman-cloud plugin entry with isWALArchiver: true.
+# Use this only for other plugins.
+# @default -- []
+# @section -- Cluster
+plugins:
+  - name: some-other-plugin.example.io
+    parameters:
+      someKey: someValue
+
+# -------------------------------------------------------------------------
+# Declarative management
+# -------------------------------------------------------------------------
+
+# -- Declarative roles. Maps to spec.managed.roles.
+# @default -- []
+# @section -- Cluster
+roles:
+  - name: app
+    ensure: present
+    login: true
+    superuser: false
+    createdb: false
+    createrole: false
+    inherit: true
+    replication: false
+    bypassrls: false
+    connectionLimit: -1
+    passwordSecret:
+      name: app-secret
+    inRoles:
+      - pg_read_server_files
+  - name: readonly
+    ensure: present
+    login: true
+    comment: Read-only application user
+
+# -- Declarative databases. Maps to spec.managed.databases.
+# @default -- []
+# @section -- Cluster
+databases:
+  - name: app
+    ensure: present
+    owner: app
+    extensions:
+      - name: pg_stat_statements
+        ensure: present
+      - name: postgis
+        ensure: present
+
+# -------------------------------------------------------------------------
+# Replica cluster
+# -------------------------------------------------------------------------
+
+# -- External cluster sources for recovery or replica topologies.
+# @default -- []
+# @section -- Cluster
+externalClusters:
+  # -- Streaming replication source.
+  - name: source-cluster
+    connectionParameters:
+      host: source-postgres.example.com
+      user: streaming_replica
+      dbname: postgres
+      sslmode: verify-full
+    password:
+      name: source-secret
+      key: password
+    sslCert:
+      name: source-tls
+      key: tls.crt
+    sslKey:
+      name: source-tls
+      key: tls.key
+    sslRootCert:
+      name: source-tls
+      key: ca.crt
+
+  # -- Recovery from a plugin-based ObjectStore backup.
+  - name: backup-source
+    plugin:
+      name: barman-cloud.cloudnative-pg.io
+      parameters:
+        barmanObjectName: source-cluster
+        serverName: source-cluster
+
+# -- Replica cluster configuration.
+# @default -- {}
+# @section -- Cluster
+replica:
+  enabled: true
+  source: source-cluster
+  self: replica-cluster
+  primary: source-cluster
+  promotionToken: ""
+
+# -- Replication slot configuration.
+# @default -- {}
+# @section -- Cluster
+replicationSlots:
+  highAvailability:
+    enabled: true
+    slotPrefix: _cnpg_
+  synchronizeReplicas:
+    enabled: true
+    excludePatterns:
+      - "^test_"
+
+# -------------------------------------------------------------------------
+# Sync replicas
+# -------------------------------------------------------------------------
+
+# @default -- 0
+# @section -- Cluster
+minSyncReplicas: 1
+# @default -- 0
+# @section -- Cluster
+maxSyncReplicas: 2
+
+# -------------------------------------------------------------------------
+# Certificates and superuser
+# -------------------------------------------------------------------------
+
+# @default -- {}
+# @section -- Cluster
+certificates:
+  serverCASecret: my-ca-secret
+  serverTLSSecret: my-tls-secret
+  replicationTLSSecret: my-replication-tls
+  clientCASecret: my-client-ca
+  serverAltDNSNames:
+    - my-cluster.example.com
+
+# @default -- true
+# @section -- Cluster
+enableSuperuserAccess: true
+
+# -- Name of an existing secret with the superuser password.
+# @default -- ""
+# @section -- Cluster
+superuserSecret: superuser-secret
+
+# -------------------------------------------------------------------------
+# Resources
+# -------------------------------------------------------------------------
+
+# @default -- {}
+# @section -- Cluster
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# -------------------------------------------------------------------------
+# Scheduling and placement
+# -------------------------------------------------------------------------
+
+# @default -- ""
+# @section -- Cluster
+priorityClassName: high-priority
+
+# @default -- ""
+# @section -- Cluster
+schedulerName: my-scheduler
+
+# @default -- {}
+# @section -- Cluster
+nodeSelector:
+  node-role: database
+
+# @default -- []
+# @section -- Cluster
+tolerations:
+  - key: dedicated
+    operator: Equal
+    value: database
+    effect: NoSchedule
+
+# @default -- []
+# @section -- Cluster
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        cnpg.io/cluster: my-cluster
+
+# @default -- {}
+# @section -- Cluster
+affinity:
+  enablePodAntiAffinity: true
+  podAntiAffinityType: preferred
+  topologyKey: kubernetes.io/hostname
+
+# -------------------------------------------------------------------------
+# Monitoring
+# -------------------------------------------------------------------------
+
+# @section -- Monitoring
+monitoring:
+  # -- Set to true to enable monitoring.
+  # @default -- false
+  # @section -- Monitoring
+  enabled: true
+
+  podMonitor:
+    # @default -- true
+    # @section -- Monitoring
+    enabled: true
+    # @default -- {}
+    # @section -- Monitoring
+    labels:
+      team: platform
+    # @default -- []
+    # @section -- Monitoring
+    relabelings:
+      - sourceLabels:
+          - namespace
+        targetLabel: kubernetes_namespace
+    # @default -- []
+    # @section -- Monitoring
+    metricRelabelings:
+      - sourceLabels:
+          - __name__
+        regex: cnpg_.*
+        action: keep
+
+  prometheusRule:
+    # @default -- true
+    # @section -- Monitoring
+    enabled: true
+    # @default -- []
+    # @section -- Monitoring
+    excludeRules: []
+
+  # @default -- false
+  # @section -- Monitoring
+  disableDefaultQueries: false
+
+  # -- Custom Prometheus queries. Stored in a generated ConfigMap and referenced
+  # automatically in spec.monitoring.customQueriesConfigMap.
+  # @default -- []
+  # @section -- Monitoring
+  customQueries:
+    - name: pg_cache_hit_ratio
+      query: "SELECT current_database() as datname, sum(heap_blks_hit) / nullif(sum(heap_blks_hit) + sum(heap_blks_read), 0) as ratio FROM pg_statio_user_tables;"
+      metrics:
+        - datname:
+            usage: LABEL
+            description: Name of the database
+        - ratio:
+            usage: GAUGE
+            description: Cache hit ratio
+
+  # -- Reference existing secrets with custom queries.
+  # @default -- []
+  # @section -- Monitoring
+  customQueriesSecret:
+    - name: custom-queries-secret
+      key: queries.yaml
+
+# -------------------------------------------------------------------------
+# Environment and volumes
+# -------------------------------------------------------------------------
+
+# @default -- []
+# @section -- Cluster
+env:
+  - name: MY_VAR
+    value: my-value
+  - name: SECRET_VAR
+    valueFrom:
+      secretKeyRef:
+        name: my-secret
+        key: my-key
+
+# @default -- []
+# @section -- Cluster
+envFrom:
+  - configMapRef:
+      name: my-config
+  - secretRef:
+      name: my-secret
+
+# @default -- {}
+# @section -- Cluster
+projectedVolumeTemplate:
+  sources:
+    - configMap:
+        name: my-config
+        items:
+          - key: my-key
+            path: my-file
+
+# -- ServiceAccount annotations (e.g. for IRSA / Workload Identity).
+# @default -- {}
+# @section -- Cluster
+serviceAccountTemplate:
+  metadata:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/postgres-role
+
+# -- Labels and annotations propagated to all child resources (pods, PVCs, etc.).
+# @default -- {}
+# @section -- Cluster
+inheritedMetadata:
+  labels:
+    environment: production
+  annotations:
+    iam.amazonaws.com/role: arn:aws:iam::123456789012:role/postgres-role
+
+# -------------------------------------------------------------------------
+# Update strategy and timing
+# -------------------------------------------------------------------------
+
+# -- switchover | restart
+# @default -- switchover
+# @section -- Cluster
+primaryUpdateMethod: switchover
+
+# -- unsupervised | supervised
+# @default -- unsupervised
+# @section -- Cluster
+primaryUpdateStrategy: unsupervised
+
+# -- error | warning | info | debug | trace
+# @default -- info
+# @section -- Cluster
+logLevel: info
+
+# @default -- 40
+# @section -- Cluster
+switchoverDelay: 40
+# @default -- 0
+# @section -- Cluster
+failoverDelay: 0
+# @default -- 30
+# @section -- Cluster
+startDelay: 30
+# @default -- 30
+# @section -- Cluster
+stopDelay: 30
+# @default -- 120
+# @section -- Cluster
+smartShutdownTimeout: 120
+
+# -------------------------------------------------------------------------
+# Poolers
+# -------------------------------------------------------------------------
+
+# -- List of Pooler (PgBouncer) resources. Each entry needs a name field.
+# The rendered name will be <cluster-name>-<name>.
+# @default -- []
+# @section -- Poolers
+poolers:
+  - name: rw
+    instances: 2
+    type: rw
+    pgbouncer:
+      poolMode: transaction
+      parameters:
+        max_client_conn: "1000"
+        default_pool_size: "25"
+
+  - name: ro
+    instances: 2
+    type: ro
+    pgbouncer:
+      poolMode: transaction
+      parameters:
+        max_client_conn: "1000"
+        default_pool_size: "25"
+    template:
+      spec:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+
+# -------------------------------------------------------------------------
+# ObjectStore (barman-cloud plugin)
+# -------------------------------------------------------------------------
+
+# -- ObjectStore resource for the barman-cloud plugin.
+# The resource is named after the cluster (release name / nameOverride).
+# Enabling this automatically injects the barman-cloud plugin entry into the Cluster spec.
+# Requires the barman-cloud plugin (barmancloud.cnpg.io) to be installed.
+# @section -- ObjectStore
+objectStore:
+  # -- Set to true to render an ObjectStore and wire it into the Cluster.
+  # Automatically injects the barman-cloud plugin entry (with isWALArchiver: true)
+  # into the Cluster spec. Requires the barman-cloud plugin to be installed.
+  # @default -- false
+  # @section -- ObjectStore
+  enabled: true
+
+  configuration:
+    # @section -- ObjectStore
+    destinationPath: s3://my-bucket/
+
+    # -- Custom endpoint for S3-compatible stores (MinIO, etc.).
+    # Leave empty for AWS S3.
+    # @default -- ""
+    # @section -- ObjectStore
+    endpointURL: http://minio:9000
+
+    # -- Optional: server name override used in the object store path.
+    # Defaults to the cluster name.
+    # @default -- ""
+    # @section -- ObjectStore
+    serverName: my-cluster
+
+    endpointCA:
+      name: minio-ca-secret
+      key: ca.crt
+
+    # -- S3 / S3-compatible credentials.
+    # @section -- ObjectStore
+    s3Credentials:
+      accessKeyId:
+        name: s3-credentials
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: s3-credentials
+        key: ACCESS_SECRET_KEY
+      region:
+        name: s3-credentials
+        key: AWS_DEFAULT_REGION
+      inheritFromIAMRole: false
+
+    wal:
+      # -- bzip2 | gzip | lz4 | snappy | xz | zstd
+      # @section -- ObjectStore
+      compression: gzip
+      # @section -- ObjectStore
+      maxParallel: 8
+
+    data:
+      # -- bzip2 | gzip | lz4 | snappy
+      # @section -- ObjectStore
+      compression: gzip
+      # @section -- ObjectStore
+      jobs: 2
+
+  # -- Retention policy for backups. Pattern: ^[1-9][0-9]*[dwm]$ (e.g. 30d, 12w, 6m).
+  # @default -- ""
+  # @section -- ObjectStore
+  retentionPolicy: "30d"
+
+  # -- Sidecar container configuration.
+  # @default -- {}
+  # @section -- ObjectStore
+  instanceSidecarConfiguration:
+    logLevel: info
+    retentionPolicyIntervalSeconds: 1800
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 500m

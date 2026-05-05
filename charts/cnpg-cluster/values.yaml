@@ -1,0 +1,153 @@
+# -- Override the Cluster name. Defaults to the Helm release name.
+nameOverride: ""
+
+# -- Metadata overrides for the Cluster resource.
+metadata: {}
+
+# -- Number of PostgreSQL instances in the cluster.
+instances: 1
+
+# -- Container image for PostgreSQL. Takes precedence over imageCatalogRef.
+imageName: ""
+
+# -- Reference to an ImageCatalog or ClusterImageCatalog resource.
+imageCatalogRef: {}
+
+imagePullPolicy: IfNotPresent
+imagePullSecrets: []
+
+postgresUID: -1
+postgresGID: -1
+
+storage:
+  size: 8Gi
+  storageClass: ""
+
+walStorage:
+  enabled: false
+  size: 1Gi
+  storageClass: ""
+
+postgresql:
+  parameters: {}
+  pg_hba: []
+  pg_ident: []
+  shared_preload_libraries: []
+
+# -- initdb bootstrap config. Maps to spec.bootstrap.initdb.
+initdb: {}
+
+# -- Recovery bootstrap config. Maps to spec.bootstrap.recovery.
+recovery: {}
+
+# -- pg_basebackup bootstrap config. Maps to spec.bootstrap.pg_basebackup.
+pgBaseBackup: {}
+
+externalClusters: []
+replica: {}
+replicationSlots: {}
+
+# -- Declarative role management. Maps to spec.managed.roles.
+roles: []
+
+# -- Declarative database management. Maps to spec.managed.databases.
+databases: []
+
+backup:
+  # -- Set to true to enable S3 backup via barmanObjectStore.
+  enabled: false
+
+  target: prefer-standby
+  retentionPolicy: "30d"
+
+  s3:
+    bucket: ""
+    path: "/"
+    endpointURL: ""
+    endpointCA:
+      name: ""
+      key: ""
+    secret:
+      # -- Name of the existing secret containing S3 credentials.
+      name: ""
+      accessKeyKey: ACCESS_KEY_ID
+      secretKeyKey: ACCESS_SECRET_KEY
+      # -- Optional: key for AWS region in the same secret.
+      regionKey: ""
+    # -- Use pod's IAM role instead of explicit credentials (IRSA / instance profile).
+    inheritFromIAMRole: false
+
+  wal:
+    compression: gzip
+    maxParallel: 1
+  data:
+    compression: gzip
+    jobs: 2
+
+  volumeSnapshot:
+    # -- Set to true to enable VolumeSnapshot-based backups.
+    enabled: false
+    className: ""
+    walClassName: ""
+    online: true
+    snapshotOwnerReference: cluster
+
+  # -- List of ScheduledBackup resources to create for this cluster.
+  scheduledBackups: []
+
+plugins: []
+
+monitoring:
+  # -- Set to true to enable monitoring.
+  enabled: false
+  podMonitor:
+    enabled: true
+    labels: {}
+    relabelings: []
+    metricRelabelings: []
+  prometheusRule:
+    enabled: true
+    excludeRules: []
+  disableDefaultQueries: false
+  customQueriesSecret: []
+
+resources: {}
+priorityClassName: ""
+schedulerName: ""
+nodeSelector: {}
+tolerations: []
+topologySpreadConstraints: []
+affinity: {}
+
+minSyncReplicas: 0
+maxSyncReplicas: 0
+
+certificates: {}
+enableSuperuserAccess: true
+superuserSecret: ""
+
+primaryUpdateMethod: switchover
+primaryUpdateStrategy: unsupervised
+logLevel: info
+switchoverDelay: 40
+failoverDelay: 0
+startDelay: 30
+stopDelay: 30
+smartShutdownTimeout: 120
+
+inheritedMetadata: {}
+serviceAccountTemplate: {}
+env: []
+envFrom: []
+projectedVolumeTemplate: {}
+additionalLabels: {}
+annotations: {}
+
+# -- List of Pooler (PgBouncer) resources to create for this cluster.
+poolers: []
+
+# -- ObjectStore resource for the barman-cloud plugin.
+# The resource name matches the cluster name. Requires the barman-cloud plugin to be installed.
+# Enabling this automatically injects the plugin entry into the Cluster spec.
+objectStore:
+  enabled: false
