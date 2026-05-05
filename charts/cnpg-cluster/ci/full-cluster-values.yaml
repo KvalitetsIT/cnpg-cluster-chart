@@ -22,6 +22,15 @@ initdb:
   postInitApplicationSQL:
     - CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 
+# Resources apply to all instance pods, including during initdb bootstrap.
+# There is no separate resource spec for the initialization job.
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
 roles:
   - name: app
     ensure: present

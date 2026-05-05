@@ -36,7 +36,6 @@ The chart renders a single `Cluster` resource and its supporting resources (Obje
 │   └── cnpg-cluster/
 │       ├── Chart.yaml
 │       ├── values.yaml
-│       ├── values-docs.yaml
 │       ├── README.md.gotmpl
 │       ├── README.md
 │       ├── .helmignore
@@ -71,17 +70,13 @@ helm install my-cluster oci://ghcr.io/kvalitetsit/cnpg-cluster -f values.yaml
 
 ---
 
-## values.yaml vs values-docs.yaml vs ci/*-values.yaml
+## values.yaml vs ci/*-values.yaml
 
 ### values.yaml
 
 - Defines the actual Helm defaults (intentionally minimal)
 - Used by Helm at install and upgrade time
-
-### values-docs.yaml
-
-- Used **only for documentation** — does not affect chart behavior
-- Contains fully populated example structures so helm-docs can produce a readable Values table
+- `# --` doc comments on each field are picked up by helm-docs to generate the Values table
 
 ### ci/*-values.yaml
 

@@ -10,5 +10,5 @@
 
 - [ ] `helm template` renders correctly for affected scenarios
 - [ ] CI values files updated if new values were added
-- [ ] `values-docs.yaml` updated if new values were added
+- [ ] `values.yaml` updated if new values were added (with `# --` doc comments for helm-docs)
 - [ ] No breaking changes, or breaking changes are documented above

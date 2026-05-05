@@ -13,25 +13,40 @@ imageName: ""
 # -- Reference to an ImageCatalog or ClusterImageCatalog resource.
 imageCatalogRef: {}
 
+# -- Image pull policy for the PostgreSQL container.
 imagePullPolicy: IfNotPresent
+
+# -- Image pull secrets for private registries.
 imagePullSecrets: []
 
+# -- UID for the postgres process. -1 means use the default from the image.
 postgresUID: -1
+
+# -- GID for the postgres process. -1 means use the default from the image.
 postgresGID: -1
 
 storage:
+  # -- Size of the PVC for PostgreSQL data.
   size: 8Gi
+  # -- Storage class for the data PVC. Defaults to the cluster default.
   storageClass: ""
 
 walStorage:
+  # -- Set to true to use a separate PVC for WAL files.
   enabled: false
+  # -- Size of the WAL PVC.
   size: 1Gi
+  # -- Storage class for the WAL PVC. Defaults to the cluster default.
   storageClass: ""
 
 postgresql:
+  # -- PostgreSQL configuration parameters (postgresql.conf knobs).
   parameters: {}
+  # -- pg_hba.conf rules appended after the operator-managed entries.
   pg_hba: []
+  # -- pg_ident.conf rules.
   pg_ident: []
+  # -- Libraries added to shared_preload_libraries.
   shared_preload_libraries: []
 
 # -- initdb bootstrap config. Maps to spec.bootstrap.initdb.
@@ -43,8 +58,13 @@ recovery: {}
 # -- pg_basebackup bootstrap config. Maps to spec.bootstrap.pg_basebackup.
 pgBaseBackup: {}
 
+# -- External cluster definitions used for recovery or replica sources. Maps to spec.externalClusters.
 externalClusters: []
+
+# -- Replica cluster configuration. Maps to spec.replica.
 replica: {}
+
+# -- Replication slot configuration. Maps to spec.replicationSlots.
 replicationSlots: {}
 
 # -- Declarative role management. Maps to spec.managed.roles.
@@ -57,20 +77,30 @@ backup:
   # -- Set to true to enable S3 backup via barmanObjectStore.
   enabled: false
 
+  # -- Which instance to take backups from. prefer-standby avoids load on the primary.
   target: prefer-standby
+
+  # -- Backup retention policy (e.g. "30d", "10" for 10 backups).
   retentionPolicy: "30d"
 
   s3:
+    # -- S3 bucket name.
     bucket: ""
+    # -- Path prefix inside the bucket.
     path: "/"
+    # -- Custom S3-compatible endpoint URL (e.g. for MinIO).
     endpointURL: ""
     endpointCA:
+      # -- Name of the ConfigMap or Secret containing the endpoint CA certificate.
       name: ""
+      # -- Key within the ConfigMap or Secret.
       key: ""
     secret:
       # -- Name of the existing secret containing S3 credentials.
       name: ""
+      # -- Key for the AWS access key ID.
       accessKeyKey: ACCESS_KEY_ID
+      # -- Key for the AWS secret access key.
       secretKeyKey: ACCESS_SECRET_KEY
       # -- Optional: key for AWS region in the same secret.
       regionKey: ""
@@ -78,69 +108,136 @@ backup:
     inheritFromIAMRole: false
 
   wal:
+    # -- Compression algorithm for WAL files uploaded to S3.
     compression: gzip
+    # -- Number of parallel WAL upload workers.
     maxParallel: 1
+
   data:
+    # -- Compression algorithm for base backup data files.
     compression: gzip
+    # -- Number of parallel data upload workers.
     jobs: 2
 
   volumeSnapshot:
     # -- Set to true to enable VolumeSnapshot-based backups.
     enabled: false
+    # -- VolumeSnapshotClass for the data volume snapshot.
     className: ""
+    # -- VolumeSnapshotClass for the WAL volume snapshot.
     walClassName: ""
+    # -- Take the snapshot while the instance is running (online snapshot).
     online: true
+    # -- Which resource owns the snapshots (cluster or none).
     snapshotOwnerReference: cluster
 
   # -- List of ScheduledBackup resources to create for this cluster.
   scheduledBackups: []
 
+# -- Additional plugins to inject into the Cluster spec. The barman-cloud plugin entry is auto-injected when objectStore.enabled is true.
 plugins: []
 
 monitoring:
   # -- Set to true to enable monitoring.
   enabled: false
   podMonitor:
+    # -- Set to true to create a PodMonitor resource.
     enabled: true
+    # -- Additional labels to add to the PodMonitor.
     labels: {}
+    # -- Relabeling rules applied to scraped metrics.
     relabelings: []
+    # -- Metric relabeling rules applied after scraping.
     metricRelabelings: []
   prometheusRule:
+    # -- Set to true to create a PrometheusRule resource with CNPG alerting rules.
     enabled: true
+    # -- List of default rule names to exclude.
     excludeRules: []
+  # -- Disable the default Prometheus queries shipped by CNPG.
   disableDefaultQueries: false
+  # -- References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml).
   customQueriesSecret: []
 
+# -- CPU and memory resource requests/limits for the PostgreSQL container.
 resources: {}
+
+# -- PriorityClass for the PostgreSQL pods.
 priorityClassName: ""
+
+# -- Custom scheduler name. Defaults to the Kubernetes default scheduler.
 schedulerName: ""
+
+# -- Node selector for the PostgreSQL pods.
 nodeSelector: {}
+
+# -- Tolerations for the PostgreSQL pods.
 tolerations: []
+
+# -- Topology spread constraints for the PostgreSQL pods.
 topologySpreadConstraints: []
+
+# -- Affinity rules for the PostgreSQL pods.
 affinity: {}
 
+# -- Minimum number of synchronous standby replicas required for a commit to succeed.
 minSyncReplicas: 0
+
+# -- Maximum number of synchronous standby replicas.
 maxSyncReplicas: 0
 
+# -- TLS certificate configuration. Maps to spec.certificates.
 certificates: {}
+
+# -- Allow direct connections to the postgres superuser.
 enableSuperuserAccess: true
+
+# -- Name of an existing secret containing the superuser password.
 superuserSecret: ""
 
+# -- Method used to perform a controlled switchover (switchover or restart).
 primaryUpdateMethod: switchover
+
+# -- When to apply updates: unsupervised applies them automatically.
 primaryUpdateStrategy: unsupervised
+
+# -- Log level for the instance manager (error, warning, info, debug, trace).
 logLevel: info
+
+# -- Seconds to wait for a switchover to complete before forcing a failover.
 switchoverDelay: 40
+
+# -- Seconds to wait before triggering an automatic failover.
 failoverDelay: 0
+
+# -- Seconds to wait for the instance to start before marking it as failed.
 startDelay: 30
+
+# -- Seconds to wait for the instance to stop cleanly before sending SIGKILL.
 stopDelay: 30
+
+# -- Seconds to wait for smart shutdown (idle connections drain) before switching to fast shutdown.
 smartShutdownTimeout: 120
 
+# -- Labels and annotations inherited by all child resources (pods, PVCs, etc.).
 inheritedMetadata: {}
+
+# -- Template for the ServiceAccount created for the cluster pods.
 serviceAccountTemplate: {}
+
+# -- Extra environment variables for the PostgreSQL container.
 env: []
+
+# -- Extra environment variables sourced from ConfigMaps or Secrets.
 envFrom: []
+
+# -- Projected volume template mounted into the PostgreSQL pods.
 projectedVolumeTemplate: {}
+
+# -- Extra labels added to the Cluster resource.
 additionalLabels: {}
+
+# -- Extra annotations added to the Cluster resource.
 annotations: {}
 
 # -- List of Pooler (PgBouncer) resources to create for this cluster.
@@ -150,4 +247,5 @@ poolers: []
 # The resource name matches the cluster name. Requires the barman-cloud plugin to be installed.
 # Enabling this automatically injects the plugin entry into the Cluster spec.
 objectStore:
+  # -- Set to true to create an ObjectStore resource and enable the barman-cloud plugin.
   enabled: false
