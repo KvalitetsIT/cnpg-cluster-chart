@@ -1,13 +1,7 @@
 {{- define "cnpg.managed" -}}
-{{- if or .Values.roles .Values.databases }}
+{{- if .Values.roles }}
 managed:
-  {{- with .Values.roles }}
   roles:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.databases }}
-  databases:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- toYaml .Values.roles | nindent 4 }}
 {{- end }}
 {{- end }}
