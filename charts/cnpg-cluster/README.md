@@ -93,8 +93,8 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| roles | list | [] | Declarative role management. Maps to spec.managed.roles. See [example](#roles--databases-1). |
-| databases | list | [] | List of Database CRD resources to create. Each entry requires a name field. The cluster reference is auto-injected. All other fields map directly to the Database spec. See [example](#roles--databases-1). |
+| roles | list | [] | Declarative role management. Maps to spec.managed.roles. See [example](#roles--databases-1) and the [RoleConfiguration API](https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1#roleconfiguration). |
+| databases | list | [] | List of Database CRD resources to create. Each entry requires a name field. The cluster reference is auto-injected. All other fields map directly to the Database spec. See [example](#roles--databases-1) and the [Database API](https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1#database). |
 
 ### Backup
 
@@ -108,7 +108,7 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | backup.volumeSnapshot.walClassName | string | "" | VolumeSnapshotClass for the WAL volume snapshot. |
 | backup.volumeSnapshot.online | bool | true | Take the snapshot while the instance is running (online snapshot). |
 | backup.volumeSnapshot.snapshotOwnerReference | string | cluster | Which resource owns the snapshots (cluster or none). |
-| backup.scheduledBackups | list | [] | List of ScheduledBackup resources to create for this cluster. |
+| backup.scheduledBackups | list | [] | List of ScheduledBackup resources to create for this cluster. See the [ScheduledBackup API](https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1#scheduledbackup). |
 
 ### Plugins
 
