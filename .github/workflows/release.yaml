@@ -1,42 +1,79 @@
-name: RELEASE
+name: Release
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions: {}
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  helm:
+  metadata:
+    name: Verify Release Metadata
+    if: github.repository == 'KvalitetsIT/cnpg-cluster-chart'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+    outputs:
+      version: ${{ steps.verify.outputs.version }}
+      prerelease: ${{ steps.verify.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
-      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
-        name: "Setup Helm"
+      - id: verify
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          version="${TAG_NAME#v}"
+          prerelease=false
+          if [[ "${version}" == *-* ]]; then
+            prerelease=true
+          fi
+          chart_version="$(yq '.version' charts/cnpg-cluster/Chart.yaml)"
+          app_version="$(yq '.appVersion' charts/cnpg-cluster/Chart.yaml)"
+
+          [[ "${version}" == "${chart_version}" ]] || {
+            echo "Chart.yaml version (${chart_version}) does not match tag (${version})"
+            exit 1
+          }
+
+          [[ "${version}" == "${app_version}" ]] || {
+            echo "Chart.yaml appVersion (${app_version}) does not match tag (${version})"
+            exit 1
+          }
+
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "prerelease=${prerelease}" >> "${GITHUB_OUTPUT}"
+
+  helm:
+    name: Publish Helm Chart
+    if: github.repository == 'KvalitetsIT/cnpg-cluster-chart'
+    runs-on: ubuntu-latest
+    needs:
+      - metadata
+    permissions:
+      contents: read
+      id-token: write # Required for trusted publishing of Helm artifacts.
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5.0.0
+        name: Setup Helm
         with:
           version: "v3.17.0"
 
-      - name: Get version from tag
-        id: version
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Set chart version
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          sed -i "s/^version: .*/version: ${VERSION}/g" charts/cnpg/Chart.yaml
-          sed -i "s/^appVersion: .*/appVersion: \"${VERSION}\"/g" charts/cnpg/Chart.yaml
-
       - name: Build Chart
-        run: |
-          helm package charts/cnpg
+        run: helm package charts/cnpg-cluster
 
       - name: Configure Git
         run: |
@@ -44,36 +81,44 @@ jobs:
           git config --global user.email "development@kvalitetsit.dk"
 
       - name: Checkout Helm repo
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: KvalitetsIT/helm-repo
           token: ${{ secrets.KIT_GITHUB_ACCESS }}
           path: helm-repo
+          persist-credentials: false
 
       - name: Publish chart
         env:
-          TAG: ${{ steps.version.outputs.version }}
+          TAG: ${{ needs.metadata.outputs.version }}
+          KIT_GITHUB_ACCESS: ${{ secrets.KIT_GITHUB_ACCESS }}
         run: |
-          mkdir -p helm-repo/cnpg
-          cp cnpg-*.tgz helm-repo/cnpg/
+          set -euo pipefail
+          mkdir -p helm-repo/cnpg-cluster
+          cp cnpg-cluster-*.tgz helm-repo/cnpg-cluster/
           cd helm-repo
+          git remote set-url origin "https://${KIT_GITHUB_ACCESS}:x-oauth-basic@github.com/KvalitetsIT/helm-repo"
           helm repo index . --url https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/
           git add -A
-          git commit -m "Release cnpg chart version $TAG"
+          git commit -m "chore: release cnpg-cluster chart v${TAG}" || exit 0
           git push
 
   github-release:
+    name: Create GitHub Release
+    if: github.repository == 'KvalitetsIT/cnpg-cluster-chart'
     needs:
       - helm
+      - metadata
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Required to create the GitHub release for the tag.
     steps:
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
           tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          name: v${{ needs.metadata.outputs.version }}
+          prerelease: ${{ needs.metadata.outputs.prerelease == 'true' }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

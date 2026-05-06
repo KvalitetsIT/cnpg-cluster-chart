@@ -1,264 +1,399 @@
-# -- Override the Cluster name. Defaults to the Helm release name.
+# -- Override the Cluster name.
+# @default -- Release name
+# @section -- Cluster
 nameOverride: ""
 
 # -- Metadata overrides for the Cluster resource.
+# @default -- {}
+# @section -- Cluster
 metadata: {}
 
 # -- Number of PostgreSQL instances in the cluster.
+# @default -- 1
+# @section -- Cluster
 instances: 1
 
 # -- Container image for PostgreSQL. Takes precedence over imageCatalogRef.
+# @default -- ""
+# @section -- Cluster
 imageName: ""
 
 # -- Reference to an ImageCatalog or ClusterImageCatalog resource.
+# @default -- {}
+# @section -- Cluster
 imageCatalogRef: {}
 
 # -- Image pull policy for the PostgreSQL container.
+# @default -- IfNotPresent
+# @section -- Cluster
 imagePullPolicy: IfNotPresent
 
 # -- Image pull secrets for private registries.
+# @default -- []
+# @section -- Cluster
 imagePullSecrets: []
 
 # -- UID for the postgres process. -1 means use the default from the image.
+# @default -- -1
+# @section -- Cluster
 postgresUID: -1
 
 # -- GID for the postgres process. -1 means use the default from the image.
+# @default -- -1
+# @section -- Cluster
 postgresGID: -1
 
+# -- PVC storage configuration for PostgreSQL data.
+# @default -- see values.yaml
+# @section -- Storage
 storage:
   # -- Size of the PVC for PostgreSQL data.
+  # @default -- 8Gi
+  # @section -- Storage
   size: 8Gi
-  # -- Storage class for the data PVC. Defaults to the cluster default.
+  # -- Storage class for the data PVC.
+  # @default -- cluster default
+  # @section -- Storage
   storageClass: ""
 
+# -- Separate PVC configuration for WAL files.
+# @default -- see values.yaml
+# @section -- WAL Storage
 walStorage:
   # -- Set to true to use a separate PVC for WAL files.
+  # @default -- false
+  # @section -- WAL Storage
   enabled: false
   # -- Size of the WAL PVC.
+  # @default -- 1Gi
+  # @section -- WAL Storage
   size: 1Gi
-  # -- Storage class for the WAL PVC. Defaults to the cluster default.
+  # -- Storage class for the WAL PVC.
+  # @default -- cluster default
+  # @section -- WAL Storage
   storageClass: ""
 
+# -- PostgreSQL engine configuration.
+# @default -- see values.yaml
+# @section -- PostgreSQL
 postgresql:
   # -- PostgreSQL configuration parameters (postgresql.conf knobs).
+  # @default -- {}
+  # @section -- PostgreSQL
   parameters: {}
   # -- pg_hba.conf rules appended after the operator-managed entries.
+  # @default -- []
+  # @section -- PostgreSQL
   pg_hba: []
   # -- pg_ident.conf rules.
+  # @default -- []
+  # @section -- PostgreSQL
   pg_ident: []
   # -- Libraries added to shared_preload_libraries.
+  # @default -- []
+  # @section -- PostgreSQL
   shared_preload_libraries: []
 
 # -- initdb bootstrap config. Maps to spec.bootstrap.initdb.
+# @default -- {}
+# @section -- Bootstrap
 initdb: {}
 
 # -- Recovery bootstrap config. Maps to spec.bootstrap.recovery.
+# @default -- {}
+# @section -- Bootstrap
 recovery: {}
 
 # -- pg_basebackup bootstrap config. Maps to spec.bootstrap.pg_basebackup.
+# @default -- {}
+# @section -- Bootstrap
 pgBaseBackup: {}
 
 # -- External cluster definitions used for recovery or replica sources. Maps to spec.externalClusters.
+# @default -- []
+# @section -- Bootstrap
 externalClusters: []
 
 # -- Replica cluster configuration. Maps to spec.replica.
+# @default -- {}
+# @section -- Replication
 replica: {}
 
 # -- Replication slot configuration. Maps to spec.replicationSlots.
+# @default -- {}
+# @section -- Replication
 replicationSlots: {}
 
+# -- Minimum number of synchronous standby replicas required for a commit to succeed.
+# @default -- 0
+# @section -- Replication
+minSyncReplicas: 0
+
+# -- Maximum number of synchronous standby replicas.
+# @default -- 0
+# @section -- Replication
+maxSyncReplicas: 0
+
 # -- Declarative role management. Maps to spec.managed.roles.
+# @default -- []
+# @section -- Roles & Databases
 roles: []
 
 # -- List of Database CRD resources to create. Each entry requires a name field.
 # The cluster reference is auto-injected. All other fields map directly to the Database spec.
+# @default -- []
+# @section -- Roles & Databases
 databases: []
 
-# -- S3/VolumeSnapshot backup, scheduled backups, and WAL settings.
+# -- VolumeSnapshot backup, scheduled backups, and WAL settings.
 # @default -- see values.yaml
+# @section -- Backup
 backup:
-  # Set to true to enable S3 backup via barmanObjectStore.
-  enabled: false
-
-  # Which instance to take backups from. prefer-standby avoids load on the primary.
+  # -- Which instance to take backups from. prefer-standby avoids load on the primary.
+  # @default -- prefer-standby
+  # @section -- Backup
   target: prefer-standby
 
-  # Backup retention policy (e.g. "30d", "10" for 10 backups).
+  # -- Backup retention policy (e.g. "30d", "10" for 10 backups).
+  # @default -- "30d"
+  # @section -- Backup
   retentionPolicy: "30d"
 
-  s3:
-    # S3 bucket name.
-    bucket: ""
-    # Path prefix inside the bucket.
-    path: "/"
-    # Custom S3-compatible endpoint URL (e.g. for MinIO).
-    endpointURL: ""
-    endpointCA:
-      # Name of the ConfigMap or Secret containing the endpoint CA certificate.
-      name: ""
-      # Key within the ConfigMap or Secret.
-      key: ""
-    secret:
-      # Name of the existing secret containing S3 credentials.
-      name: ""
-      # Key for the AWS access key ID.
-      accessKeyKey: ACCESS_KEY_ID
-      # Key for the AWS secret access key.
-      secretKeyKey: ACCESS_SECRET_KEY
-      # Optional: key for AWS region in the same secret.
-      regionKey: ""
-    # Use pod's IAM role instead of explicit credentials (IRSA / instance profile).
-    inheritFromIAMRole: false
-
-  wal:
-    # Compression algorithm for WAL files uploaded to S3.
-    compression: gzip
-    # Number of parallel WAL upload workers.
-    maxParallel: 1
-
-  data:
-    # Compression algorithm for base backup data files.
-    compression: gzip
-    # Number of parallel data upload workers.
-    jobs: 2
-
   volumeSnapshot:
-    # Set to true to enable VolumeSnapshot-based backups.
+    # -- Set to true to enable VolumeSnapshot-based backups.
+    # @default -- false
+    # @section -- Backup
     enabled: false
-    # VolumeSnapshotClass for the data volume snapshot.
+    # -- VolumeSnapshotClass for the data volume snapshot.
+    # @default -- ""
+    # @section -- Backup
     className: ""
-    # VolumeSnapshotClass for the WAL volume snapshot.
+    # -- VolumeSnapshotClass for the WAL volume snapshot.
+    # @default -- ""
+    # @section -- Backup
     walClassName: ""
-    # Take the snapshot while the instance is running (online snapshot).
+    # -- Take the snapshot while the instance is running (online snapshot).
+    # @default -- true
+    # @section -- Backup
     online: true
-    # Which resource owns the snapshots (cluster or none).
+    # -- Which resource owns the snapshots (cluster or none).
+    # @default -- cluster
+    # @section -- Backup
     snapshotOwnerReference: cluster
 
-  # List of ScheduledBackup resources to create for this cluster.
+  # -- List of ScheduledBackup resources to create for this cluster.
+  # @default -- []
+  # @section -- Backup
   scheduledBackups: []
 
-# -- Additional plugins to inject into the Cluster spec. The barman-cloud plugin entry is auto-injected when objectStore.enabled is true.
+# -- Additional plugins to inject into the Cluster spec.
+# The barman-cloud plugin entry is auto-injected when objectStore.enabled is true.
+# @default -- []
+# @section -- Plugins
 plugins: []
 
 # -- Monitoring configuration including PodMonitor and custom queries.
 # @default -- see values.yaml
+# @section -- Monitoring
 monitoring:
-  # Set to true to enable monitoring.
+  # -- Set to true to enable monitoring.
+  # @default -- false
+  # @section -- Monitoring
   enabled: false
   podMonitor:
-    # Set to true to create a PodMonitor resource.
+    # -- Set to true to create a PodMonitor resource.
+    # @default -- true
+    # @section -- Monitoring
     enabled: true
-    # Additional labels to add to the PodMonitor.
+    # -- Additional labels to add to the PodMonitor.
+    # @default -- {}
+    # @section -- Monitoring
     labels: {}
-    # Relabeling rules applied to scraped metrics.
+    # -- Relabeling rules applied to scraped metrics.
+    # @default -- []
+    # @section -- Monitoring
     relabelings: []
-    # Metric relabeling rules applied after scraping.
+    # -- Metric relabeling rules applied after scraping.
+    # @default -- []
+    # @section -- Monitoring
     metricRelabelings: []
-  # Disable the default Prometheus queries shipped by CNPG.
+  # -- Disable the default Prometheus queries shipped by CNPG.
+  # @default -- false
+  # @section -- Monitoring
   disableDefaultQueries: false
-  # References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml).
+  # -- References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml).
+  # @default -- []
+  # @section -- Monitoring
   customQueriesSecret: []
 
 # -- CPU and memory resource requests/limits for the PostgreSQL container.
+# @default -- {}
+# @section -- Resources & Scheduling
 resources: {}
 
 # -- PriorityClass for the PostgreSQL pods.
+# @default -- ""
+# @section -- Resources & Scheduling
 priorityClassName: ""
 
-# -- Custom scheduler name. Defaults to the Kubernetes default scheduler.
+# -- Custom scheduler name.
+# @default -- default Kubernetes scheduler
+# @section -- Resources & Scheduling
 schedulerName: ""
 
 # -- Node selector for the PostgreSQL pods.
+# @default -- {}
+# @section -- Resources & Scheduling
 nodeSelector: {}
 
 # -- Tolerations for the PostgreSQL pods.
+# @default -- []
+# @section -- Resources & Scheduling
 tolerations: []
 
 # -- Topology spread constraints for the PostgreSQL pods.
+# @default -- []
+# @section -- Resources & Scheduling
 topologySpreadConstraints: []
 
 # -- Affinity rules for the PostgreSQL pods.
+# @default -- {}
+# @section -- Resources & Scheduling
 affinity: {}
 
-# -- Minimum number of synchronous standby replicas required for a commit to succeed.
-minSyncReplicas: 0
-
-# -- Maximum number of synchronous standby replicas.
-maxSyncReplicas: 0
-
 # -- TLS certificate configuration. Maps to spec.certificates.
+# @default -- {}
+# @section -- Access & Security
 certificates: {}
 
 # -- Allow direct connections to the postgres superuser.
+# @default -- true
+# @section -- Access & Security
 enableSuperuserAccess: true
 
 # -- Name of an existing secret containing the superuser password.
+# @default -- ""
+# @section -- Access & Security
 superuserSecret: ""
 
 # -- Method used to perform a controlled switchover (switchover or restart).
+# @default -- switchover
+# @section -- Lifecycle
 primaryUpdateMethod: switchover
 
 # -- When to apply updates: unsupervised applies them automatically.
+# @default -- unsupervised
+# @section -- Lifecycle
 primaryUpdateStrategy: unsupervised
 
 # -- Log level for the instance manager (error, warning, info, debug, trace).
+# @default -- info
+# @section -- Lifecycle
 logLevel: info
 
 # -- Seconds to wait for a switchover to complete before forcing a failover.
+# @default -- 40
+# @section -- Lifecycle
 switchoverDelay: 40
 
 # -- Seconds to wait before triggering an automatic failover.
+# @default -- 0
+# @section -- Lifecycle
 failoverDelay: 0
 
 # -- Seconds to wait for the instance to start before marking it as failed.
+# @default -- 30
+# @section -- Lifecycle
 startDelay: 30
 
 # -- Seconds to wait for the instance to stop cleanly before sending SIGKILL.
+# @default -- 30
+# @section -- Lifecycle
 stopDelay: 30
 
 # -- Seconds to wait for smart shutdown (idle connections drain) before switching to fast shutdown.
+# @default -- 120
+# @section -- Lifecycle
 smartShutdownTimeout: 120
 
 # -- Labels and annotations inherited by all child resources (pods, PVCs, etc.).
+# @default -- {}
+# @section -- Metadata & Volumes
 inheritedMetadata: {}
 
 # -- Template for the ServiceAccount created for the cluster pods.
+# @default -- {}
+# @section -- Metadata & Volumes
 serviceAccountTemplate: {}
 
 # -- Extra environment variables for the PostgreSQL container.
+# @default -- []
+# @section -- Metadata & Volumes
 env: []
 
 # -- Extra environment variables sourced from ConfigMaps or Secrets.
+# @default -- []
+# @section -- Metadata & Volumes
 envFrom: []
 
 # -- Projected volume template mounted into the PostgreSQL pods.
+# @default -- {}
+# @section -- Metadata & Volumes
 projectedVolumeTemplate: {}
 
 # -- List of Pooler (PgBouncer) resources to create for this cluster.
+# @default -- []
+# @section -- Poolers
 poolers: []
 
-# -- ObjectStore resource for the barman-cloud plugin. Enabling this automatically injects the plugin entry into the Cluster spec.
+# -- ObjectStore resource for the barman-cloud plugin.
+# Enabling this automatically injects the plugin entry into the Cluster spec.
 # @default -- see values.yaml
+# @section -- Object Store
 objectStore:
-  # Set to true to create an ObjectStore resource and enable the barman-cloud plugin.
+  # -- Set to true to create an ObjectStore resource and enable the barman-cloud plugin.
+  # @default -- false
+  # @section -- Object Store
   enabled: false
-  # Backup retention policy.
+  # -- Backup retention policy.
+  # @default -- "30d"
+  # @section -- Object Store
   retentionPolicy: "30d"
-  # ObjectStore configuration. Set destinationPath and s3Credentials at minimum.
+  # -- ObjectStore configuration. Set destinationPath and s3Credentials at minimum.
+  # @default -- see values.yaml
+  # @section -- Object Store
   configuration:
     wal:
-      # Compression algorithm for WAL files.
+      # -- Compression algorithm for WAL files.
+      # @default -- gzip
+      # @section -- Object Store
       compression: gzip
-      # Number of parallel WAL upload workers.
+      # -- Number of parallel WAL upload workers.
+      # @default -- 8
+      # @section -- Object Store
       maxParallel: 8
-  # Sidecar container configuration for the barman-cloud plugin.
+  # -- Sidecar container configuration for the barman-cloud plugin.
+  # @default -- see values.yaml
+  # @section -- Object Store
   instanceSidecarConfiguration:
     resources:
       limits:
+        # -- Memory limit for the barman-cloud sidecar.
+        # @default -- 512Mi
+        # @section -- Object Store
         memory: 512Mi
+        # -- CPU limit for the barman-cloud sidecar.
+        # @default -- 500m
+        # @section -- Object Store
         cpu: 500m
       requests:
+        # -- Memory request for the barman-cloud sidecar.
+        # @default -- 256Mi
+        # @section -- Object Store
         memory: 256Mi
+        # -- CPU request for the barman-cloud sidecar.
+        # @default -- 250m
+        # @section -- Object Store
         cpu: 250m
 
 # -- CiliumNetworkPolicy and other resources rendered via the KvalitetsIT templates chart.

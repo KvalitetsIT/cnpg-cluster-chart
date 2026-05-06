@@ -7,7 +7,7 @@ objectStore:
   enabled: true
   configuration:
     destinationPath: s3://my-bucket/
-    endpointURL: https://minio.example.com
+    endpointURL: hel1.your-objectstorage.com
     s3Credentials:
       accessKeyId:
         name: aws-creds
@@ -19,7 +19,6 @@ objectStore:
       compression: gzip
 
 backup:
-  enabled: false
   scheduledBackups:
     - name: daily
       schedule: "0 0 3 * * *"
