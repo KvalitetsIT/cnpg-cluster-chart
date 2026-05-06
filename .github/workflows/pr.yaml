@@ -88,17 +88,17 @@ jobs:
           }
 
           CNPG_BASE="https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/refs/tags/${CNPG_VERSION}/config/crd/bases"
-          kubectl apply -f "${CNPG_BASE}/postgresql.cnpg.io_clusters.yaml"
-          kubectl apply -f "${CNPG_BASE}/postgresql.cnpg.io_poolers.yaml"
-          kubectl apply -f "${CNPG_BASE}/postgresql.cnpg.io_databases.yaml"
-          kubectl apply -f "${CNPG_BASE}/postgresql.cnpg.io_scheduledbackups.yaml"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_clusters.yaml"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_poolers.yaml"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_databases.yaml"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_scheduledbackups.yaml"
           wait_for_crd clusters.postgresql.cnpg.io
           wait_for_crd poolers.postgresql.cnpg.io
           wait_for_crd databases.postgresql.cnpg.io
           wait_for_crd scheduledbackups.postgresql.cnpg.io
 
           BARMAN_BASE="https://raw.githubusercontent.com/cloudnative-pg/plugin-barman-cloud/refs/tags/${BARMAN_PLUGIN_VERSION}/config/crd/bases"
-          kubectl apply -f "${BARMAN_BASE}/barmancloud.cnpg.io_objectstores.yaml"
+          kubectl apply --server-side -f "${BARMAN_BASE}/barmancloud.cnpg.io_objectstores.yaml"
           wait_for_crd objectstores.barmancloud.cnpg.io
 
       - name: Run chart-testing (install)
