@@ -13,20 +13,16 @@ concurrency:
 
 jobs:
   metadata:
-    name: Verify Release Metadata
+    name: Parse Release Metadata
     if: github.repository == 'KvalitetsIT/cnpg-cluster-chart'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
-      version: ${{ steps.verify.outputs.version }}
-      prerelease: ${{ steps.verify.outputs.prerelease }}
+      version: ${{ steps.parse.outputs.version }}
+      prerelease: ${{ steps.parse.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - id: verify
+      - id: parse
         env:
           TAG_NAME: ${{ github.ref_name }}
         run: |
@@ -37,9 +33,6 @@ jobs:
           if [[ "${version}" == *-* ]]; then
             prerelease=true
           fi
-
-          yq -i ".version = \"${version}\"" charts/cnpg-cluster/Chart.yaml
-          yq -i ".appVersion = \"${version}\"" charts/cnpg-cluster/Chart.yaml
 
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "prerelease=${prerelease}" >> "${GITHUB_OUTPUT}"
@@ -62,6 +55,16 @@ jobs:
         name: Setup Helm
         with:
           version: "v3.17.0"
+
+      - name: Set Chart Version
+        env:
+          VERSION: ${{ needs.metadata.outputs.version }}
+        run: |
+          yq -i ".version = \"${VERSION}\"" charts/cnpg-cluster/Chart.yaml
+          yq -i ".appVersion = \"${VERSION}\"" charts/cnpg-cluster/Chart.yaml
+
+      - name: Update Chart Dependencies
+        run: helm dependency update charts/cnpg-cluster
 
       - name: Build Chart
         run: helm package charts/cnpg-cluster
