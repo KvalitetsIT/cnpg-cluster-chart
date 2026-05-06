@@ -45,10 +45,12 @@ jobs:
             exit 1
           }
 
-          [[ "${version}" == "${app_version}" ]] || {
-            echo "Chart.yaml appVersion (${app_version}) does not match tag (${version})"
-            exit 1
-          }
+          if [[ "${prerelease}" == "false" ]]; then
+            [[ "${version}" == "${app_version}" ]] || {
+              echo "Chart.yaml appVersion (${app_version}) does not match tag (${version})"
+              exit 1
+            }
+          fi
 
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "prerelease=${prerelease}" >> "${GITHUB_OUTPUT}"
