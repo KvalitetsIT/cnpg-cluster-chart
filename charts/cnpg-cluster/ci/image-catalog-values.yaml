@@ -1,9 +1,7 @@
-imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
 instances: 1
 storage:
   size: 1Gi
 
-# Reference a catalog managed by a separate chart/component
 imageCatalogRef:
   apiGroup: postgresql.cnpg.io
   kind: ClusterImageCatalog
