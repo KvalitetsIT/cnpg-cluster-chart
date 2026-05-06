@@ -101,6 +101,11 @@ jobs:
           kubectl apply --server-side -f "${BARMAN_BASE}/barmancloud.cnpg.io_objectstores.yaml"
           wait_for_crd objectstores.barmancloud.cnpg.io
 
+      - name: Add Helm repositories
+        run: |
+          helm repo add kvalitetsit https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/
+          helm repo update
+
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
         run: |
