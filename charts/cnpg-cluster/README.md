@@ -86,8 +86,8 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| roles | list | [] | Declarative role management. Maps to spec.managed.roles. |
-| databases | list | [] | List of Database CRD resources to create. Each entry requires a name field. The cluster reference is auto-injected. All other fields map directly to the Database spec. |
+| roles | list | [] | Declarative role management. Maps to spec.managed.roles. See [example](#roles--databases-1). |
+| databases | list | [] | List of Database CRD resources to create. Each entry requires a name field. The cluster reference is auto-injected. All other fields map directly to the Database spec. See [example](#roles--databases-1). |
 
 ### Backup
 
@@ -302,17 +302,61 @@ poolers:
 ### ImageCatalog reference
 
 ```yaml
-imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
 instances: 1
 storage:
   size: 1Gi
 
-# Reference a catalog managed by a separate chart/component
 imageCatalogRef:
   apiGroup: postgresql.cnpg.io
   kind: ClusterImageCatalog
   name: postgresql
   major: 16
+```
+
+### Roles & Databases
+
+Declarative role and database management via `roles` and `databases`.
+Roles map to `spec.managed.roles` on the `Cluster` resource and are continuously reconciled by the operator.
+Each entry in `databases` creates a separate `Database` CRD; the cluster reference is auto-injected by the chart.
+
+```yaml
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 1
+storage:
+  size: 8Gi
+
+initdb:
+  database: app
+  owner: app
+
+roles:
+  - name: app
+    ensure: present
+    login: true
+    passwordSecret:
+      name: app-secret
+  - name: reporting
+    ensure: present
+    login: true
+    passwordSecret:
+      name: reporting-secret
+    comment: Read-only reporting account
+  - name: migration
+    ensure: present
+    login: true
+    createDb: false
+    passwordSecret:
+      name: migration-secret
+    comment: Account used by schema migration tooling
+
+databases:
+  - name: app
+    ensure: present
+    owner: app
+  - name: reporting
+    ensure: present
+    owner: reporting
+    comment: Separate database for reporting queries
 ```
 
 ----------------------------------------------

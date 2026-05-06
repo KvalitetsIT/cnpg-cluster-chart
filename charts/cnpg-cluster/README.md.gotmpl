@@ -59,4 +59,14 @@ Each entry in `poolers` renders a `Pooler` resource named `<cluster>-<name>`.
 {{ .Files.Get "ci/image-catalog-values.yaml" | trimSuffix "\n" }}
 ```
 
+### Roles & Databases
+
+Declarative role and database management via `roles` and `databases`.
+Roles map to `spec.managed.roles` on the `Cluster` resource and are continuously reconciled by the operator.
+Each entry in `databases` creates a separate `Database` CRD; the cluster reference is auto-injected by the chart.
+
+```yaml
+{{ .Files.Get "ci/roles-databases-values.yaml" | trimSuffix "\n" }}
+```
+
 {{ template "helm-docs.versionFooter" . }}

@@ -134,13 +134,13 @@ minSyncReplicas: 0
 # @section -- Replication
 maxSyncReplicas: 0
 
-# -- Declarative role management. Maps to spec.managed.roles.
+# -- Declarative role management. Maps to spec.managed.roles. See [example](#roles--databases-1).
 # @default -- []
 # @section -- Roles & Databases
 roles: []
 
 # -- List of Database CRD resources to create. Each entry requires a name field.
-# The cluster reference is auto-injected. All other fields map directly to the Database spec.
+# The cluster reference is auto-injected. All other fields map directly to the Database spec. See [example](#roles--databases-1).
 # @default -- []
 # @section -- Roles & Databases
 databases: []
