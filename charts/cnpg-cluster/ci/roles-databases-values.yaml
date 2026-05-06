@@ -1,0 +1,37 @@
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 1
+storage:
+  size: 8Gi
+
+initdb:
+  database: app
+  owner: app
+
+roles:
+  - name: app
+    ensure: present
+    login: true
+    passwordSecret:
+      name: app-secret
+  - name: reporting
+    ensure: present
+    login: true
+    passwordSecret:
+      name: reporting-secret
+    comment: Read-only reporting account
+  - name: migration
+    ensure: present
+    login: true
+    createDb: false
+    passwordSecret:
+      name: migration-secret
+    comment: Account used by schema migration tooling
+
+databases:
+  - name: app
+    ensure: present
+    owner: app
+  - name: reporting
+    ensure: present
+    owner: reporting
+    comment: Separate database for reporting queries

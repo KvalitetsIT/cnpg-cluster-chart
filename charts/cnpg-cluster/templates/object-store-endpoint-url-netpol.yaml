@@ -1,0 +1,22 @@
+{{- if and .Values.objectStore.enabled .Values.global.objectStore.configuration.endpointURL }}
+{{- $name := include "cnpg-cluster.fullname" . }}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ printf "%s-cluster-s3" $name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "cnpg-cluster.labels" . | nindent 4 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  egress:
+    - toFQDNs:
+        - matchName: {{ .Values.global.objectStore.configuration.endpointURL | quote }}
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+{{- end }}

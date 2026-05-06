@@ -1,0 +1,21 @@
+apiVersion: v2
+type: application
+name: cnpg-cluster
+version: 1.0.0
+appVersion: 1.0.0
+description: >
+  Helm chart for deploying CloudNativePG clusters and related resources.
+  Ships with a default CiliumNetworkPolicy allowing the CNPG operator to reach cluster pods.
+home: https://github.com/KvalitetsIT
+icon: https://raw.githubusercontent.com/KvalitetsIT/.github/refs/heads/main/assets/favicon.png
+sources:
+  - https://github.com/KvalitetsIT/cnpg-chart
+  - https://github.com/KvalitetsIT/cnpg-chart/tree/main/charts/cnpg
+maintainers:
+  - name: KvalitetsIT
+    email: kithosting@kvalitetsit.dk
+    url: https://github.com/KvalitetsIT/helm-repo
+dependencies:
+  - name: templates
+    version: 2.1.0
+    repository: https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/

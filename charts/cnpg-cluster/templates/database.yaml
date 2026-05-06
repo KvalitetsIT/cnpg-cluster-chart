@@ -1,0 +1,17 @@
+{{- $clusterName := include "cnpg-cluster.fullname" . }}
+{{- $root := . }}
+{{- range .Values.databases }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: {{ printf "%s-%s" $clusterName .name | quote }}
+  namespace: {{ $root.Release.Namespace | quote }}
+  labels:
+    {{- include "cnpg-cluster.labels" $root | nindent 4 }}
+spec:
+  name: {{ .name | quote }}
+  cluster:
+    name: {{ $clusterName | quote }}
+  {{- toYaml (omit . "name") | nindent 2 }}
+{{- end }}

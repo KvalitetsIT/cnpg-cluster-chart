@@ -1,0 +1,186 @@
+{{- $name := include "cnpg-cluster.fullname" . }}
+{{- $metadata := (include "cnpg-cluster.metadata" (dict "root" $ "metadata" (default dict .Values.metadata) "name" $name) | fromYaml) }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ $metadata.name | quote }}
+  namespace: {{ $metadata.namespace | quote }}
+  labels:
+    {{- toYaml $metadata.labels | nindent 4 }}
+  {{- with $metadata.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  instances: {{ .Values.instances }}
+
+  {{- /* Image */}}
+  {{- with .Values.imageName }}
+  imageName: {{ . | quote }}
+  {{- end }}
+  {{- if .Values.imageCatalogRef.name }}
+  imageCatalogRef:
+    {{- toYaml .Values.imageCatalogRef | nindent 4 }}
+  {{- end }}
+  {{- if ne .Values.imagePullPolicy "IfNotPresent" }}
+  imagePullPolicy: {{ .Values.imagePullPolicy | quote }}
+  {{- end }}
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if gt (int .Values.postgresUID) 0 }}
+  postgresUID: {{ .Values.postgresUID }}
+  {{- end }}
+  {{- if gt (int .Values.postgresGID) 0 }}
+  postgresGID: {{ .Values.postgresGID }}
+  {{- end }}
+
+  {{- /* Storage */}}
+  storage:
+    size: {{ .Values.storage.size | quote }}
+    {{- with .Values.storage.storageClass }}
+    storageClass: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.storage.pvcTemplate }}
+    pvcTemplate:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.walStorage.enabled }}
+  walStorage:
+    size: {{ .Values.walStorage.size | quote }}
+    {{- with .Values.walStorage.storageClass }}
+    storageClass: {{ . | quote }}
+    {{- end }}
+  {{- end }}
+  {{- with .Values.ephemeralVolumesSizeLimit }}
+  ephemeralVolumesSizeLimit:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- /* PostgreSQL */}}
+  {{- with .Values.postgresql }}
+  postgresql:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- /* Bootstrap */}}
+  {{- include "cnpg.bootstrap" . | nindent 2 }}
+
+  {{- /* Backup */}}
+  {{- include "cnpg.backup" . | nindent 2 }}
+
+  {{- /* Plugins — user-defined plus auto-injected barman-cloud entries */}}
+  {{- include "cnpg.plugins" . | nindent 2 }}
+
+  {{- /* Declarative managed objects */}}
+  {{- include "cnpg.managed" . | nindent 2 }}
+
+  {{- /* Replica / external clusters */}}
+  {{- with .Values.externalClusters }}
+  externalClusters:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.replica }}
+  replica:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.replicationSlots }}
+  replicationSlots:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- /* Sync replicas */}}
+  {{- if gt (int .Values.minSyncReplicas) 0 }}
+  minSyncReplicas: {{ .Values.minSyncReplicas }}
+  {{- end }}
+  {{- if gt (int .Values.maxSyncReplicas) 0 }}
+  maxSyncReplicas: {{ .Values.maxSyncReplicas }}
+  {{- end }}
+
+  {{- /* Certificates and superuser */}}
+  {{- with .Values.certificates }}
+  certificates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  enableSuperuserAccess: {{ .Values.enableSuperuserAccess }}
+  {{- if .Values.superuserSecret }}
+  superuserSecret:
+    name: {{ .Values.superuserSecret | quote }}
+  {{- end }}
+
+  {{- /* Resources */}}
+  {{- with .Values.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- /* Scheduling */}}
+  {{- with .Values.priorityClassName }}
+  priorityClassName: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.schedulerName }}
+  schedulerName: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.topologySpreadConstraints }}
+  topologySpreadConstraints:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- /* Monitoring */}}
+  {{- include "cnpg.monitoring" . | nindent 2 }}
+
+  {{- /* Environment */}}
+  {{- with .Values.env }}
+  env:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.envFrom }}
+  envFrom:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.projectedVolumeTemplate }}
+  projectedVolumeTemplate:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- /* Misc */}}
+  primaryUpdateMethod: {{ .Values.primaryUpdateMethod }}
+  primaryUpdateStrategy: {{ .Values.primaryUpdateStrategy }}
+  logLevel: {{ .Values.logLevel }}
+  {{- if gt (int .Values.switchoverDelay) 0 }}
+  switchoverDelay: {{ .Values.switchoverDelay }}
+  {{- end }}
+  {{- if gt (int .Values.failoverDelay) 0 }}
+  failoverDelay: {{ .Values.failoverDelay }}
+  {{- end }}
+  {{- if gt (int .Values.startDelay) 0 }}
+  startDelay: {{ .Values.startDelay }}
+  {{- end }}
+  {{- if gt (int .Values.stopDelay) 0 }}
+  stopDelay: {{ .Values.stopDelay }}
+  {{- end }}
+  {{- if gt (int .Values.smartShutdownTimeout) 0 }}
+  smartShutdownTimeout: {{ .Values.smartShutdownTimeout }}
+  {{- end }}
+  {{- with .Values.inheritedMetadata }}
+  inheritedMetadata:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.serviceAccountTemplate }}
+  serviceAccountTemplate:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

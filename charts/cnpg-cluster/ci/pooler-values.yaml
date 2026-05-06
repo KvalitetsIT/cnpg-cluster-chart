@@ -1,0 +1,19 @@
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 1
+storage:
+  size: 1Gi
+
+poolers:
+  - name: rw
+    type: rw
+    instances: 2
+    pgbouncer:
+      poolMode: transaction
+      parameters:
+        max_client_conn: "200"
+        default_pool_size: "10"
+  - name: ro
+    type: ro
+    instances: 1
+    pgbouncer:
+      poolMode: session

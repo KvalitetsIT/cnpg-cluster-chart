@@ -35,7 +35,6 @@ jobs:
       contents: read
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
@@ -78,6 +77,10 @@ jobs:
 
       - name: Install CRDs
         if: steps.list-changed.outputs.changed == 'true'
+        env:
+          CNPG_VERSION: v1.29.0
+          BARMAN_PLUGIN_VERSION: v0.12.0
+          CILIUM_VERSION: v1.19.0
         run: |
           wait_for_crd() {
             local crd="$1"
@@ -85,8 +88,28 @@ jobs:
               || kubectl wait --for=condition=Established --timeout=60s "crd/${crd}"
           }
 
-          kubectl apply -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/refs/tags/v1.25.1/config/crd/bases/postgresql.cnpg.io_clusters.yaml
+          CNPG_BASE="https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/refs/tags/${CNPG_VERSION}/config/crd/bases"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_clusters.yaml"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_poolers.yaml"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_databases.yaml"
+          kubectl apply --server-side -f "${CNPG_BASE}/postgresql.cnpg.io_scheduledbackups.yaml"
           wait_for_crd clusters.postgresql.cnpg.io
+          wait_for_crd poolers.postgresql.cnpg.io
+          wait_for_crd databases.postgresql.cnpg.io
+          wait_for_crd scheduledbackups.postgresql.cnpg.io
+
+          BARMAN_BASE="https://raw.githubusercontent.com/cloudnative-pg/plugin-barman-cloud/refs/tags/${BARMAN_PLUGIN_VERSION}/config/crd/bases"
+          kubectl apply --server-side -f "${BARMAN_BASE}/barmancloud.cnpg.io_objectstores.yaml"
+          wait_for_crd objectstores.barmancloud.cnpg.io
+
+          CILIUM_BASE="https://raw.githubusercontent.com/cilium/cilium/refs/tags/${CILIUM_VERSION}/pkg/k8s/apis/cilium.io/client/crds/v2"
+          kubectl apply --server-side -f "${CILIUM_BASE}/ciliumnetworkpolicies.yaml"
+          wait_for_crd ciliumnetworkpolicies.cilium.io
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add kvalitetsit https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/
+          helm repo update
 
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
