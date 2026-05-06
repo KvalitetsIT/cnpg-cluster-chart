@@ -1,3 +1,14 @@
+# -- Global values propagated to all chart dependencies.
+# @default -- see values.yaml
+# @section -- Global
+global:
+  objectStore:
+    # -- S3-compatible endpoint URL shared with dependency templates (e.g. CiliumNetworkPolicy egress rules).
+    # Set this to the same value as objectStore.configuration.endpointURL.
+    # @default -- ""
+    # @section -- Global
+    endpointURL: ""
+
 # -- Override the Cluster name.
 # @default -- Release name
 # @section -- Cluster
@@ -363,8 +374,28 @@ objectStore:
   # @default -- see values.yaml
   # @section -- Object Store
   configuration:
+    # -- S3 destination path for backups (e.g. s3://my-bucket/my-cluster). Required.
+    # @default -- ""
+    # @section -- Object Store
+    destinationPath: ""
+    # -- S3-compatible endpoint URL. Omit for AWS S3.
+    # @default -- ""
+    # @section -- Object Store
+    endpointURL: ""
+    # -- S3 credentials referencing Kubernetes secret keys.
+    # @default -- {}
+    # @section -- Object Store
+    s3Credentials:
+      # -- Secret key reference for the S3 access key ID.
+      # @default -- {}
+      # @section -- Object Store
+      accessKeyId: {}
+      # -- Secret key reference for the S3 secret access key.
+      # @default -- {}
+      # @section -- Object Store
+      secretAccessKey: {}
     wal:
-      # -- Compression algorithm for WAL files.
+      # -- Compression algorithm for WAL files (gzip, bzip2, snappy).
       # @default -- gzip
       # @section -- Object Store
       compression: gzip
@@ -372,6 +403,15 @@ objectStore:
       # @default -- 8
       # @section -- Object Store
       maxParallel: 8
+    data:
+      # -- Compression algorithm for base backup data files (gzip, bzip2, snappy).
+      # @default -- gzip
+      # @section -- Object Store
+      compression: gzip
+      # -- Number of parallel data upload workers.
+      # @default -- 8
+      # @section -- Object Store
+      jobs: 8
   # -- Sidecar container configuration for the barman-cloud plugin.
   # @default -- see values.yaml
   # @section -- Object Store
@@ -413,10 +453,19 @@ templates:
             - ports:
                 - port: "6443"
                   protocol: TCP
+        - toFQDNs:
+            - matchName: "{{ .Values.global.objectStore.endpointURL }}"
+          toPorts:
+            - ports:
+                - port: "443"
+                  protocol: TCP
       ingress:
         - fromEndpoints:
             - matchLabels:
                 "k8s:io.kubernetes.pod.namespace": cnpg-system
+                app.kubernetes.io/name: cloudnative-pg
+            - matchLabels:
+                "k8s:io.kubernetes.pod.namespace": data-storage-services
                 app.kubernetes.io/name: cloudnative-pg
           toPorts:
             - ports:

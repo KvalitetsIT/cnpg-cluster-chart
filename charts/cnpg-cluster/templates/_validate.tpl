@@ -1,5 +1,7 @@
 {{- define "cnpg.validate" -}}
 
+{{- include "cnpg-cluster.syncEndpointURL" . }}
+
 {{- /* instances */}}
 {{- if not .Values.instances }}
   {{- fail "instances is required" }}

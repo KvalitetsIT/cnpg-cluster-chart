@@ -23,6 +23,13 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 ## Values
 
+### Global
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| global | object | see values.yaml | Global values propagated to all chart dependencies. |
+| global.objectStore.endpointURL | string | "" | S3-compatible endpoint URL shared with dependency templates (e.g. CiliumNetworkPolicy egress rules). Set this to the same value as objectStore.configuration.endpointURL. |
+
 ### Cluster
 
 | Key | Type | Default | Description |
@@ -179,8 +186,15 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | objectStore.enabled | bool | false | Set to true to create an ObjectStore resource and enable the barman-cloud plugin. |
 | objectStore.retentionPolicy | string | "30d" | Backup retention policy. |
 | objectStore.configuration | object | see values.yaml | ObjectStore configuration. Set destinationPath and s3Credentials at minimum. |
-| objectStore.configuration.wal.compression | string | gzip | Compression algorithm for WAL files. |
+| objectStore.configuration.destinationPath | string | "" | S3 destination path for backups (e.g. s3://my-bucket/my-cluster). Required. |
+| objectStore.configuration.endpointURL | string | "" | S3-compatible endpoint URL. Omit for AWS S3. |
+| objectStore.configuration.s3Credentials | object | {} | S3 credentials referencing Kubernetes secret keys. |
+| objectStore.configuration.s3Credentials.accessKeyId | object | {} | Secret key reference for the S3 access key ID. |
+| objectStore.configuration.s3Credentials.secretAccessKey | object | {} | Secret key reference for the S3 secret access key. |
+| objectStore.configuration.wal.compression | string | gzip | Compression algorithm for WAL files (gzip, bzip2, snappy). |
 | objectStore.configuration.wal.maxParallel | int | 8 | Number of parallel WAL upload workers. |
+| objectStore.configuration.data.compression | string | gzip | Compression algorithm for base backup data files (gzip, bzip2, snappy). |
+| objectStore.configuration.data.jobs | int | 8 | Number of parallel data upload workers. |
 | objectStore.instanceSidecarConfiguration | object | see values.yaml | Sidecar container configuration for the barman-cloud plugin. |
 | objectStore.instanceSidecarConfiguration.resources.limits.memory | string | 512Mi | Memory limit for the barman-cloud sidecar. |
 | objectStore.instanceSidecarConfiguration.resources.limits.cpu | string | 500m | CPU limit for the barman-cloud sidecar. |
