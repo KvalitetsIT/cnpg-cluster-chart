@@ -1,7 +1,7 @@
 {{- define "cnpg.plugins" -}}
 {{- $plugins := deepCopy (.Values.plugins | default list) }}
 {{- if .Values.objectStore.enabled }}
-{{- $plugins = append $plugins (dict "name" "barman-cloud.cloudnative-pg.io" "isWALArchiver" true "parameters" (dict "barmanObjectName" (include "cnpg.fullname" .))) }}
+{{- $plugins = append $plugins (dict "name" "barman-cloud.cloudnative-pg.io" "isWALArchiver" true "parameters" (dict "barmanObjectName" (include "cnpg-cluster.fullname" .))) }}
 {{- end }}
 {{- if $plugins }}
 plugins:

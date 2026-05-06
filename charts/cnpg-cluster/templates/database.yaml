@@ -1,4 +1,4 @@
-{{- $clusterName := include "cnpg.fullname" . }}
+{{- $clusterName := include "cnpg-cluster.fullname" . }}
 {{- $root := . }}
 {{- range .Values.databases }}
 ---
@@ -8,7 +8,7 @@ metadata:
   name: {{ printf "%s-%s" $clusterName .name | quote }}
   namespace: {{ $root.Release.Namespace | quote }}
   labels:
-    {{- include "common.labels" $root | nindent 4 }}
+    {{- include "cnpg-cluster.labels" $root | nindent 4 }}
 spec:
   name: {{ .name | quote }}
   cluster:

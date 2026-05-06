@@ -272,7 +272,7 @@ objectStore:
 # -- CiliumNetworkPolicy via the KvalitetsIT templates chart.
 templates:
   ciliumNetworkPolicies:
-    "cluster-netpol":
+    cluster-netpol:
       metadata:
         name: "{{ .Release.Name }}-cluster"
       endpointSelector:

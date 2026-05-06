@@ -1,6 +1,6 @@
 {{- include "cnpg.validate" . }}
-{{- $name := include "cnpg.fullname" . }}
-{{- $metadata := (include "common.metadata" (dict "root" $ "metadata" (default dict .Values.metadata) "name" $name) | fromYaml) }}
+{{- $name := include "cnpg-cluster.fullname" . }}
+{{- $metadata := (include "cnpg-cluster.metadata" (dict "root" $ "metadata" (default dict .Values.metadata) "name" $name) | fromYaml) }}
 ---
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
