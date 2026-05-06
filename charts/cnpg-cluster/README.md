@@ -1,6 +1,6 @@
 # cnpg-cluster
 
-Helm chart for rendering CloudNativePG resources from values. The chart renders nothing by default; resources are created only when explicitly configured.
+Helm chart for deploying CloudNativePG clusters and related resources. Ships with a default CiliumNetworkPolicy allowing the CNPG operator to reach cluster pods.
 
 **Homepage:** <https://github.com/KvalitetsIT>
 
@@ -14,6 +14,12 @@ Helm chart for rendering CloudNativePG resources from values. The chart renders 
 
 * <https://github.com/KvalitetsIT/cnpg-chart>
 * <https://github.com/KvalitetsIT/cnpg-chart/tree/main/charts/cnpg>
+
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/ | templates | 2.1.0 |
 
 ## Values
 
@@ -44,40 +50,10 @@ Helm chart for rendering CloudNativePG resources from values. The chart renders 
 | replica | object | `{}` | Replica cluster configuration. Maps to spec.replica. |
 | replicationSlots | object | `{}` | Replication slot configuration. Maps to spec.replicationSlots. |
 | roles | list | `[]` | Declarative role management. Maps to spec.managed.roles. |
-| databases | list | `[]` | Declarative database management. Maps to spec.managed.databases. |
-| backup.enabled | bool | `false` | Set to true to enable S3 backup via barmanObjectStore. |
-| backup.target | string | `"prefer-standby"` | Which instance to take backups from. prefer-standby avoids load on the primary. |
-| backup.retentionPolicy | string | `"30d"` | Backup retention policy (e.g. "30d", "10" for 10 backups). |
-| backup.s3.bucket | string | `""` | S3 bucket name. |
-| backup.s3.path | string | `"/"` | Path prefix inside the bucket. |
-| backup.s3.endpointURL | string | `""` | Custom S3-compatible endpoint URL (e.g. for MinIO). |
-| backup.s3.endpointCA.name | string | `""` | Name of the ConfigMap or Secret containing the endpoint CA certificate. |
-| backup.s3.endpointCA.key | string | `""` | Key within the ConfigMap or Secret. |
-| backup.s3.secret.name | string | `""` | Name of the existing secret containing S3 credentials. |
-| backup.s3.secret.accessKeyKey | string | `"ACCESS_KEY_ID"` | Key for the AWS access key ID. |
-| backup.s3.secret.secretKeyKey | string | `"ACCESS_SECRET_KEY"` | Key for the AWS secret access key. |
-| backup.s3.secret.regionKey | string | `""` | Optional: key for AWS region in the same secret. |
-| backup.s3.inheritFromIAMRole | bool | `false` | Use pod's IAM role instead of explicit credentials (IRSA / instance profile). |
-| backup.wal.compression | string | `"gzip"` | Compression algorithm for WAL files uploaded to S3. |
-| backup.wal.maxParallel | int | `1` | Number of parallel WAL upload workers. |
-| backup.data.compression | string | `"gzip"` | Compression algorithm for base backup data files. |
-| backup.data.jobs | int | `2` | Number of parallel data upload workers. |
-| backup.volumeSnapshot.enabled | bool | `false` | Set to true to enable VolumeSnapshot-based backups. |
-| backup.volumeSnapshot.className | string | `""` | VolumeSnapshotClass for the data volume snapshot. |
-| backup.volumeSnapshot.walClassName | string | `""` | VolumeSnapshotClass for the WAL volume snapshot. |
-| backup.volumeSnapshot.online | bool | `true` | Take the snapshot while the instance is running (online snapshot). |
-| backup.volumeSnapshot.snapshotOwnerReference | string | `"cluster"` | Which resource owns the snapshots (cluster or none). |
-| backup.scheduledBackups | list | `[]` | List of ScheduledBackup resources to create for this cluster. |
+| databases | list | `[]` | List of Database CRD resources to create. Each entry requires a name field. The cluster reference is auto-injected. All other fields map directly to the Database spec. |
+| backup | object | see values.yaml | S3/VolumeSnapshot backup, scheduled backups, and WAL settings. |
 | plugins | list | `[]` | Additional plugins to inject into the Cluster spec. The barman-cloud plugin entry is auto-injected when objectStore.enabled is true. |
-| monitoring.enabled | bool | `false` | Set to true to enable monitoring. |
-| monitoring.podMonitor.enabled | bool | `true` | Set to true to create a PodMonitor resource. |
-| monitoring.podMonitor.labels | object | `{}` | Additional labels to add to the PodMonitor. |
-| monitoring.podMonitor.relabelings | list | `[]` | Relabeling rules applied to scraped metrics. |
-| monitoring.podMonitor.metricRelabelings | list | `[]` | Metric relabeling rules applied after scraping. |
-| monitoring.prometheusRule.enabled | bool | `true` | Set to true to create a PrometheusRule resource with CNPG alerting rules. |
-| monitoring.prometheusRule.excludeRules | list | `[]` | List of default rule names to exclude. |
-| monitoring.disableDefaultQueries | bool | `false` | Disable the default Prometheus queries shipped by CNPG. |
-| monitoring.customQueriesSecret | list | `[]` | References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml). |
+| monitoring | object | see values.yaml | Monitoring configuration including PodMonitor and custom queries. |
 | resources | object | `{}` | CPU and memory resource requests/limits for the PostgreSQL container. |
 | priorityClassName | string | `""` | PriorityClass for the PostgreSQL pods. |
 | schedulerName | string | `""` | Custom scheduler name. Defaults to the Kubernetes default scheduler. |
@@ -103,33 +79,131 @@ Helm chart for rendering CloudNativePG resources from values. The chart renders 
 | env | list | `[]` | Extra environment variables for the PostgreSQL container. |
 | envFrom | list | `[]` | Extra environment variables sourced from ConfigMaps or Secrets. |
 | projectedVolumeTemplate | object | `{}` | Projected volume template mounted into the PostgreSQL pods. |
-| additionalLabels | object | `{}` | Extra labels added to the Cluster resource. |
-| annotations | object | `{}` | Extra annotations added to the Cluster resource. |
 | poolers | list | `[]` | List of Pooler (PgBouncer) resources to create for this cluster. |
-| objectStore | object | `{"enabled":false}` | ObjectStore resource for the barman-cloud plugin. The resource name matches the cluster name. Requires the barman-cloud plugin to be installed. Enabling this automatically injects the plugin entry into the Cluster spec. |
-| objectStore.enabled | bool | `false` | Set to true to create an ObjectStore resource and enable the barman-cloud plugin. |
+| objectStore | object | see values.yaml | ObjectStore resource for the barman-cloud plugin. Enabling this automatically injects the plugin entry into the Cluster spec. |
+| templates | object | see values.yaml | CiliumNetworkPolicy and other resources rendered via the KvalitetsIT templates chart. |
 
 ## Usage
 
-This is a Helm chart for deploying CloudNativePG resources.
-By default, it renders nothing.
+This is a Helm chart for deploying CloudNativePG clusters and related resources.
+By default it renders a `CiliumNetworkPolicy` that allows the CNPG operator to reach cluster pods.
+Configure the sections below to deploy a cluster and additional resources.
 
-Define resources like the sections below to enable rendering.
+### Cluster
 
-### Clusters
-
-Renders CloudNativePG `Cluster` resources.
-Each entry requires `instances`.
-You can override the rendered resource name and namespace via `metadata.name` and `metadata.namespace`.
-
-#### Examples:
+Renders a CloudNativePG `Cluster` resource. `instances` and either `imageName` or `imageCatalogRef` are required.
+Override the resource name via `nameOverride` or add custom labels/annotations via `metadata.labels`/`metadata.annotations`.
 
 ```yaml
-imageName: ghcr.io/cloudnative-pg/postgresql:16.6
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 1
+storage:
+  size: 1Gi
+```
+
+### Backup with barman-cloud plugin
+
+Renders an `ObjectStore` resource and wires the barman-cloud plugin into the `Cluster` spec.
+Requires the barman-cloud CNPG plugin to be installed in the cluster.
+
+```yaml
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
 instances: 1
 storage:
   size: 1Gi
 
+objectStore:
+  enabled: true
+  configuration:
+    destinationPath: s3://my-bucket/
+    endpointURL: https://minio.example.com
+    s3Credentials:
+      accessKeyId:
+        name: aws-creds
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: aws-creds
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+
+backup:
+  enabled: false
+  scheduledBackups:
+    - name: daily
+      schedule: "0 0 3 * * *"
+      backupOwnerReference: self
+      method: plugin
+      pluginConfiguration:
+        name: barman-cloud.cloudnative-pg.io
+```
+
+### Recovery from backup
+
+Point `recovery.source` at an `externalClusters` entry to bootstrap from a previous backup.
+
+```yaml
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 3
+storage:
+  size: 10Gi
+
+externalClusters:
+  - name: source-cluster
+    barmanObjectStore:
+      destinationPath: s3://my-bucket/source-cluster
+      s3Credentials:
+        accessKeyId:
+          name: aws-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: aws-creds
+          key: ACCESS_SECRET_KEY
+
+recovery:
+  source: source-cluster
+```
+
+### Poolers (PgBouncer)
+
+Each entry in `poolers` renders a `Pooler` resource named `<cluster>-<name>`.
+
+```yaml
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 1
+storage:
+  size: 1Gi
+
+poolers:
+  - name: rw
+    type: rw
+    instances: 2
+    pgbouncer:
+      poolMode: transaction
+      parameters:
+        max_client_conn: "200"
+        default_pool_size: "10"
+  - name: ro
+    type: ro
+    instances: 1
+    pgbouncer:
+      poolMode: session
+```
+
+### ImageCatalog reference
+
+```yaml
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 1
+storage:
+  size: 1Gi
+
+# Reference a catalog managed by a separate chart/component
+imageCatalogRef:
+  apiGroup: postgresql.cnpg.io
+  kind: ClusterImageCatalog
+  name: postgresql
+  major: 16
 ```
 
 ----------------------------------------------

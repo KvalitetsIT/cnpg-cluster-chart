@@ -74,90 +74,89 @@ roles: []
 # The cluster reference is auto-injected. All other fields map directly to the Database spec.
 databases: []
 
+# -- S3/VolumeSnapshot backup, scheduled backups, and WAL settings.
+# @default -- see values.yaml
 backup:
-  # -- Set to true to enable S3 backup via barmanObjectStore.
+  # Set to true to enable S3 backup via barmanObjectStore.
   enabled: false
 
-  # -- Which instance to take backups from. prefer-standby avoids load on the primary.
+  # Which instance to take backups from. prefer-standby avoids load on the primary.
   target: prefer-standby
 
-  # -- Backup retention policy (e.g. "30d", "10" for 10 backups).
+  # Backup retention policy (e.g. "30d", "10" for 10 backups).
   retentionPolicy: "30d"
 
   s3:
-    # -- S3 bucket name.
+    # S3 bucket name.
     bucket: ""
-    # -- Path prefix inside the bucket.
+    # Path prefix inside the bucket.
     path: "/"
-    # -- Custom S3-compatible endpoint URL (e.g. for MinIO).
+    # Custom S3-compatible endpoint URL (e.g. for MinIO).
     endpointURL: ""
     endpointCA:
-      # -- Name of the ConfigMap or Secret containing the endpoint CA certificate.
+      # Name of the ConfigMap or Secret containing the endpoint CA certificate.
       name: ""
-      # -- Key within the ConfigMap or Secret.
+      # Key within the ConfigMap or Secret.
       key: ""
     secret:
-      # -- Name of the existing secret containing S3 credentials.
+      # Name of the existing secret containing S3 credentials.
       name: ""
-      # -- Key for the AWS access key ID.
+      # Key for the AWS access key ID.
       accessKeyKey: ACCESS_KEY_ID
-      # -- Key for the AWS secret access key.
+      # Key for the AWS secret access key.
       secretKeyKey: ACCESS_SECRET_KEY
-      # -- Optional: key for AWS region in the same secret.
+      # Optional: key for AWS region in the same secret.
       regionKey: ""
-    # -- Use pod's IAM role instead of explicit credentials (IRSA / instance profile).
+    # Use pod's IAM role instead of explicit credentials (IRSA / instance profile).
     inheritFromIAMRole: false
 
   wal:
-    # -- Compression algorithm for WAL files uploaded to S3.
+    # Compression algorithm for WAL files uploaded to S3.
     compression: gzip
-    # -- Number of parallel WAL upload workers.
+    # Number of parallel WAL upload workers.
     maxParallel: 1
 
   data:
-    # -- Compression algorithm for base backup data files.
+    # Compression algorithm for base backup data files.
     compression: gzip
-    # -- Number of parallel data upload workers.
+    # Number of parallel data upload workers.
     jobs: 2
 
   volumeSnapshot:
-    # -- Set to true to enable VolumeSnapshot-based backups.
+    # Set to true to enable VolumeSnapshot-based backups.
     enabled: false
-    # -- VolumeSnapshotClass for the data volume snapshot.
+    # VolumeSnapshotClass for the data volume snapshot.
     className: ""
-    # -- VolumeSnapshotClass for the WAL volume snapshot.
+    # VolumeSnapshotClass for the WAL volume snapshot.
     walClassName: ""
-    # -- Take the snapshot while the instance is running (online snapshot).
+    # Take the snapshot while the instance is running (online snapshot).
     online: true
-    # -- Which resource owns the snapshots (cluster or none).
+    # Which resource owns the snapshots (cluster or none).
     snapshotOwnerReference: cluster
 
-  # -- List of ScheduledBackup resources to create for this cluster.
+  # List of ScheduledBackup resources to create for this cluster.
   scheduledBackups: []
 
 # -- Additional plugins to inject into the Cluster spec. The barman-cloud plugin entry is auto-injected when objectStore.enabled is true.
 plugins: []
 
+# -- Monitoring configuration including PodMonitor and custom queries.
+# @default -- see values.yaml
 monitoring:
-  # -- Set to true to enable monitoring.
+  # Set to true to enable monitoring.
   enabled: false
   podMonitor:
-    # -- Set to true to create a PodMonitor resource.
+    # Set to true to create a PodMonitor resource.
     enabled: true
-    # -- Additional labels to add to the PodMonitor.
+    # Additional labels to add to the PodMonitor.
     labels: {}
-    # -- Relabeling rules applied to scraped metrics.
+    # Relabeling rules applied to scraped metrics.
     relabelings: []
-    # -- Metric relabeling rules applied after scraping.
+    # Metric relabeling rules applied after scraping.
     metricRelabelings: []
-  prometheusRule:
-    # -- Set to true to create a PrometheusRule resource with CNPG alerting rules.
-    enabled: true
-    # -- List of default rule names to exclude.
-    excludeRules: []
-  # -- Disable the default Prometheus queries shipped by CNPG.
+  # Disable the default Prometheus queries shipped by CNPG.
   disableDefaultQueries: false
-  # -- References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml).
+  # References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml).
   customQueriesSecret: []
 
 # -- CPU and memory resource requests/limits for the PostgreSQL container.
@@ -235,31 +234,24 @@ envFrom: []
 # -- Projected volume template mounted into the PostgreSQL pods.
 projectedVolumeTemplate: {}
 
-# -- Extra labels added to the Cluster resource.
-additionalLabels: {}
-
-# -- Extra annotations added to the Cluster resource.
-annotations: {}
-
 # -- List of Pooler (PgBouncer) resources to create for this cluster.
 poolers: []
 
-# -- ObjectStore resource for the barman-cloud plugin.
-# The resource name matches the cluster name. Requires the barman-cloud plugin to be installed.
-# Enabling this automatically injects the plugin entry into the Cluster spec.
+# -- ObjectStore resource for the barman-cloud plugin. Enabling this automatically injects the plugin entry into the Cluster spec.
+# @default -- see values.yaml
 objectStore:
-  # -- Set to true to create an ObjectStore resource and enable the barman-cloud plugin.
+  # Set to true to create an ObjectStore resource and enable the barman-cloud plugin.
   enabled: false
-  # -- Backup retention policy.
+  # Backup retention policy.
   retentionPolicy: "30d"
-  # -- ObjectStore configuration. Set destinationPath and s3Credentials at minimum.
+  # ObjectStore configuration. Set destinationPath and s3Credentials at minimum.
   configuration:
     wal:
-      # -- Compression algorithm for WAL files.
+      # Compression algorithm for WAL files.
       compression: gzip
-      # -- Number of parallel WAL upload workers.
+      # Number of parallel WAL upload workers.
       maxParallel: 8
-  # -- Sidecar container configuration for the barman-cloud plugin.
+  # Sidecar container configuration for the barman-cloud plugin.
   instanceSidecarConfiguration:
     resources:
       limits:
@@ -269,7 +261,8 @@ objectStore:
         memory: 256Mi
         cpu: 250m
 
-# -- CiliumNetworkPolicy via the KvalitetsIT templates chart.
+# -- CiliumNetworkPolicy and other resources rendered via the KvalitetsIT templates chart.
+# @default -- see values.yaml
 templates:
   ciliumNetworkPolicies:
     cluster-netpol:

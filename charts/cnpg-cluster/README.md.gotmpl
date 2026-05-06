@@ -15,21 +15,48 @@
 
 ## Usage
 
-This is a Helm chart for deploying CloudNativePG resources.
-By default, it renders nothing.
+This is a Helm chart for deploying CloudNativePG clusters and related resources.
+By default it renders a `CiliumNetworkPolicy` that allows the CNPG operator to reach cluster pods.
+Configure the sections below to deploy a cluster and additional resources.
 
-Define resources like the sections below to enable rendering.
+### Cluster
 
-### Clusters
-
-Renders CloudNativePG `Cluster` resources.
-Each entry requires `instances`.
-You can override the rendered resource name and namespace via `metadata.name` and `metadata.namespace`.
-
-#### Examples:
+Renders a CloudNativePG `Cluster` resource. `instances` and either `imageName` or `imageCatalogRef` are required.
+Override the resource name via `nameOverride` or add custom labels/annotations via `metadata.labels`/`metadata.annotations`.
 
 ```yaml
-{{ (.Files.Get "ci/cluster-values.yaml") }}
+{{ .Files.Get "ci/cluster-values.yaml" | trimSuffix "\n" }}
+```
+
+### Backup with barman-cloud plugin
+
+Renders an `ObjectStore` resource and wires the barman-cloud plugin into the `Cluster` spec.
+Requires the barman-cloud CNPG plugin to be installed in the cluster.
+
+```yaml
+{{ .Files.Get "ci/barman-plugin-cluster-values.yaml" | trimSuffix "\n" }}
+```
+
+### Recovery from backup
+
+Point `recovery.source` at an `externalClusters` entry to bootstrap from a previous backup.
+
+```yaml
+{{ .Files.Get "ci/recovery-values.yaml" | trimSuffix "\n" }}
+```
+
+### Poolers (PgBouncer)
+
+Each entry in `poolers` renders a `Pooler` resource named `<cluster>-<name>`.
+
+```yaml
+{{ .Files.Get "ci/pooler-values.yaml" | trimSuffix "\n" }}
+```
+
+### ImageCatalog reference
+
+```yaml
+{{ .Files.Get "ci/image-catalog-values.yaml" | trimSuffix "\n" }}
 ```
 
 {{ template "helm-docs.versionFooter" . }}
