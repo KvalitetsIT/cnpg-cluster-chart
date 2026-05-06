@@ -449,12 +449,6 @@ templates:
             - ports:
                 - port: "6443"
                   protocol: TCP
-        - toFQDNs:
-            - matchName: "{{ .Values.global.objectStore.configuration.endpointURL }}"
-          toPorts:
-            - ports:
-                - port: "443"
-                  protocol: TCP
       ingress:
         - fromEndpoints:
             - matchLabels:

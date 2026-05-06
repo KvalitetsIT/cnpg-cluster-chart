@@ -1,3 +1,5 @@
+{{- $s3Netpol := index .Values.templates.ciliumNetworkPolicies "cluster-s3-netpol" }}
+{{- $_ := set $s3Netpol "enabled" (not (empty .Values.global.objectStore.configuration.endpointURL)) }}
 {{- if not .Values.instances }}
   {{- fail "instances is required" }}
 {{- end }}
