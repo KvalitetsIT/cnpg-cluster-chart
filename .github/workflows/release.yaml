@@ -37,20 +37,9 @@ jobs:
           if [[ "${version}" == *-* ]]; then
             prerelease=true
           fi
-          chart_version="$(yq '.version' charts/cnpg-cluster/Chart.yaml)"
-          app_version="$(yq '.appVersion' charts/cnpg-cluster/Chart.yaml)"
 
-          [[ "${version}" == "${chart_version}" ]] || {
-            echo "Chart.yaml version (${chart_version}) does not match tag (${version})"
-            exit 1
-          }
-
-          if [[ "${prerelease}" == "false" ]]; then
-            [[ "${version}" == "${app_version}" ]] || {
-              echo "Chart.yaml appVersion (${app_version}) does not match tag (${version})"
-              exit 1
-            }
-          fi
+          yq -i ".version = \"${version}\"" charts/cnpg-cluster/Chart.yaml
+          yq -i ".appVersion = \"${version}\"" charts/cnpg-cluster/Chart.yaml
 
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "prerelease=${prerelease}" >> "${GITHUB_OUTPUT}"
