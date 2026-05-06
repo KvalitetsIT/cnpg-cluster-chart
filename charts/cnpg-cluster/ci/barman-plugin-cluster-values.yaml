@@ -3,11 +3,15 @@ instances: 1
 storage:
   size: 1Gi
 
+global:
+  objectStore:
+    configuration:
+      endpointURL: hel1.your-objectstorage.com
+
 objectStore:
   enabled: true
   configuration:
     destinationPath: s3://my-bucket/
-    endpointURL: hel1.your-objectstorage.com
     s3Credentials:
       accessKeyId:
         name: aws-creds

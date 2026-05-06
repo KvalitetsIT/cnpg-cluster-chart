@@ -1,4 +1,3 @@
-{{- include "cnpg.validate" . }}
 {{- $name := include "cnpg-cluster.fullname" . }}
 {{- $metadata := (include "cnpg-cluster.metadata" (dict "root" $ "metadata" (default dict .Values.metadata) "name" $name) | fromYaml) }}
 ---

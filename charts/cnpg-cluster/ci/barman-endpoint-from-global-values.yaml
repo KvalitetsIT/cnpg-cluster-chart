@@ -8,7 +8,8 @@ storage:
 # so the ObjectStore CRD renders with the correct endpoint.
 global:
   objectStore:
-    endpointURL: hel1.your-objectstorage.com
+    configuration:
+      endpointURL: hel1.your-objectstorage.com
 
 objectStore:
   enabled: true

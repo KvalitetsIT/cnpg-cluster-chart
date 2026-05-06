@@ -3,11 +3,11 @@
 # @section -- Global
 global:
   objectStore:
-    # -- S3-compatible endpoint URL shared with dependency templates (e.g. CiliumNetworkPolicy egress rules).
-    # Set this to the same value as objectStore.configuration.endpointURL.
-    # @default -- ""
-    # @section -- Global
-    endpointURL: ""
+    configuration:
+      # -- S3-compatible endpoint URL. Mirrors objectStore.configuration.endpointURL and is accessible to subchart dependencies (e.g. CiliumNetworkPolicy egress rules).
+      # @default -- ""
+      # @section -- Global
+      endpointURL: ""
 
 # -- Override the Cluster name.
 # @default -- Release name
@@ -378,10 +378,6 @@ objectStore:
     # @default -- ""
     # @section -- Object Store
     destinationPath: ""
-    # -- S3-compatible endpoint URL. Omit for AWS S3.
-    # @default -- ""
-    # @section -- Object Store
-    endpointURL: ""
     # -- S3 credentials referencing Kubernetes secret keys.
     # @default -- {}
     # @section -- Object Store
@@ -454,7 +450,7 @@ templates:
                 - port: "6443"
                   protocol: TCP
         - toFQDNs:
-            - matchName: "{{ .Values.global.objectStore.endpointURL }}"
+            - matchName: "{{ .Values.global.objectStore.configuration.endpointURL }}"
           toPorts:
             - ports:
                 - port: "443"

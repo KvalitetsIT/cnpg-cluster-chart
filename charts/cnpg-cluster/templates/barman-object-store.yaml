@@ -9,5 +9,8 @@ metadata:
   labels:
     {{- include "cnpg-cluster.labels" . | nindent 4 }}
 spec:
-  {{- toYaml (omit .Values.objectStore "enabled") | nindent 2 }}
+  {{- toYaml (omit (omit .Values.objectStore "enabled") "configuration") | nindent 2 }}
+  configuration:
+    endpointURL: {{ .Values.global.objectStore.configuration.endpointURL | quote }}
+    {{- toYaml .Values.objectStore.configuration | nindent 4 }}
 {{- end }}

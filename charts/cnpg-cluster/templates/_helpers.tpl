@@ -1,11 +1,3 @@
-{{- define "cnpg-cluster.syncEndpointURL" -}}
-{{- if .Values.objectStore.configuration.endpointURL }}
-{{- $_ := set .Values.global.objectStore "endpointURL" .Values.objectStore.configuration.endpointURL }}
-{{- else if .Values.global.objectStore.endpointURL }}
-{{- $_ := set .Values.objectStore.configuration "endpointURL" .Values.global.objectStore.endpointURL }}
-{{- end }}
-{{- end }}
-
 {{- define "cnpg-cluster.fullname" -}}
 {{- .Values.nameOverride | default .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}

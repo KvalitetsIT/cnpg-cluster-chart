@@ -28,7 +28,7 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | global | object | see values.yaml | Global values propagated to all chart dependencies. |
-| global.objectStore.endpointURL | string | "" | S3-compatible endpoint URL shared with dependency templates (e.g. CiliumNetworkPolicy egress rules). Set this to the same value as objectStore.configuration.endpointURL. |
+| global.objectStore.configuration.endpointURL | string | "" | S3-compatible endpoint URL. Mirrors objectStore.configuration.endpointURL and is accessible to subchart dependencies (e.g. CiliumNetworkPolicy egress rules). |
 
 ### Cluster
 
@@ -187,7 +187,6 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | objectStore.retentionPolicy | string | "30d" | Backup retention policy. |
 | objectStore.configuration | object | see values.yaml | ObjectStore configuration. Set destinationPath and s3Credentials at minimum. |
 | objectStore.configuration.destinationPath | string | "" | S3 destination path for backups (e.g. s3://my-bucket/my-cluster). Required. |
-| objectStore.configuration.endpointURL | string | "" | S3-compatible endpoint URL. Omit for AWS S3. |
 | objectStore.configuration.s3Credentials | object | {} | S3 credentials referencing Kubernetes secret keys. |
 | objectStore.configuration.s3Credentials.accessKeyId | object | {} | Secret key reference for the S3 access key ID. |
 | objectStore.configuration.s3Credentials.secretAccessKey | object | {} | Secret key reference for the S3 secret access key. |
@@ -236,11 +235,15 @@ instances: 1
 storage:
   size: 1Gi
 
+global:
+  objectStore:
+    configuration:
+      endpointURL: hel1.your-objectstorage.com
+
 objectStore:
   enabled: true
   configuration:
     destinationPath: s3://my-bucket/
-    endpointURL: hel1.your-objectstorage.com
     s3Credentials:
       accessKeyId:
         name: aws-creds
