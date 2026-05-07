@@ -4,7 +4,7 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: {{ printf "%s-cluster-s3" $name | quote }}
+  name: {{ printf "%s-cnpg-cluster-s3" $name | quote }}
   namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "cnpg-cluster.labels" . | nindent 4 }}
