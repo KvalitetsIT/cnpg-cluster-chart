@@ -9,10 +9,15 @@ global:
       # @section -- Global
       endpointURL: ""
 
-# -- Override the Cluster name.
+# -- Override the Cluster name. Equivalent to fullnameOverride for this chart.
 # @default -- Release name
 # @section -- Cluster
 nameOverride: ""
+
+# -- Override the full Cluster name. Takes precedence over nameOverride.
+# @default -- Release name
+# @section -- Cluster
+fullnameOverride: ""
 
 # -- Metadata overrides for the Cluster resource.
 # @default -- {}
@@ -23,6 +28,20 @@ metadata: {}
 # @default -- 1
 # @section -- Cluster
 instances: 1
+
+# -- Manage the PodDisruptionBudget for the cluster.
+# When null (default), the chart automatically sets this to `false` for single-instance clusters (instances=1)
+# and leaves it unset (operator default: `true`) for multi-instance clusters.
+# Set explicitly to `true` or `false` to override this behaviour.
+# @default -- auto
+# @section -- Cluster
+enablePDB: ~
+
+# -- Passthrough for any ClusterSpec fields not explicitly exposed by chart values.
+# Fields here are appended to the Cluster spec as-is. Do not duplicate keys already managed by other values.
+# @default -- {}
+# @section -- Cluster
+clusterSpec: {}
 
 # -- Container image for PostgreSQL. Takes precedence over imageCatalogRef.
 # @default -- ""
@@ -44,15 +63,6 @@ imagePullPolicy: IfNotPresent
 # @section -- Cluster
 imagePullSecrets: []
 
-# -- UID for the postgres process. -1 means use the default from the image.
-# @default -- -1
-# @section -- Cluster
-postgresUID: -1
-
-# -- GID for the postgres process. -1 means use the default from the image.
-# @default -- -1
-# @section -- Cluster
-postgresGID: -1
 
 # -- PVC storage configuration for PostgreSQL data.
 # @default -- see values.yaml
@@ -135,15 +145,6 @@ replica: {}
 # @section -- Replication
 replicationSlots: {}
 
-# -- Minimum number of synchronous standby replicas required for a commit to succeed.
-# @default -- 0
-# @section -- Replication
-minSyncReplicas: 0
-
-# -- Maximum number of synchronous standby replicas.
-# @default -- 0
-# @section -- Replication
-maxSyncReplicas: 0
 
 # -- Declarative role management. Maps to spec.managed.roles. See [example](#roles--databases-1) and the [RoleConfiguration API](https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1#roleconfiguration).
 # @default -- []
@@ -247,10 +248,6 @@ resources: {}
 # @section -- Resources & Scheduling
 priorityClassName: ""
 
-# -- Custom scheduler name.
-# @default -- default Kubernetes scheduler
-# @section -- Resources & Scheduling
-schedulerName: ""
 
 # -- Node selector for the PostgreSQL pods.
 # @default -- {}
@@ -272,10 +269,6 @@ topologySpreadConstraints: []
 # @section -- Resources & Scheduling
 affinity: {}
 
-# -- TLS certificate configuration. Maps to spec.certificates.
-# @default -- {}
-# @section -- Access & Security
-certificates: {}
 
 # -- Allow direct connections to the postgres superuser.
 # @default -- true
@@ -297,45 +290,7 @@ primaryUpdateMethod: switchover
 # @section -- Lifecycle
 primaryUpdateStrategy: unsupervised
 
-# -- Log level for the instance manager (error, warning, info, debug, trace).
-# @default -- info
-# @section -- Lifecycle
-logLevel: info
 
-# -- Seconds to wait for a switchover to complete before forcing a failover.
-# @default -- 40
-# @section -- Lifecycle
-switchoverDelay: 40
-
-# -- Seconds to wait before triggering an automatic failover.
-# @default -- 0
-# @section -- Lifecycle
-failoverDelay: 0
-
-# -- Seconds to wait for the instance to start before marking it as failed.
-# @default -- 30
-# @section -- Lifecycle
-startDelay: 30
-
-# -- Seconds to wait for the instance to stop cleanly before sending SIGKILL.
-# @default -- 30
-# @section -- Lifecycle
-stopDelay: 30
-
-# -- Seconds to wait for smart shutdown (idle connections drain) before switching to fast shutdown.
-# @default -- 120
-# @section -- Lifecycle
-smartShutdownTimeout: 120
-
-# -- Labels and annotations inherited by all child resources (pods, PVCs, etc.).
-# @default -- {}
-# @section -- Metadata & Volumes
-inheritedMetadata: {}
-
-# -- Template for the ServiceAccount created for the cluster pods.
-# @default -- {}
-# @section -- Metadata & Volumes
-serviceAccountTemplate: {}
 
 # -- Extra environment variables for the PostgreSQL container.
 # @default -- []
@@ -347,10 +302,6 @@ env: []
 # @section -- Metadata & Volumes
 envFrom: []
 
-# -- Projected volume template mounted into the PostgreSQL pods.
-# @default -- {}
-# @section -- Metadata & Volumes
-projectedVolumeTemplate: {}
 
 # -- List of Pooler (PgBouncer) resources to create for this cluster.
 # @default -- []

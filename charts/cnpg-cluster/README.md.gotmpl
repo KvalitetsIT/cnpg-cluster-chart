@@ -28,6 +28,14 @@ Override the resource name via `nameOverride` or add custom labels/annotations v
 {{ .Files.Get "ci/cluster-values.yaml" | trimSuffix "\n" }}
 ```
 
+### ClusterSpec passthrough
+
+Any field from the [ClusterSpec API](https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec) not exposed as a top-level chart value can be placed under `clusterSpec` and it will flow directly to the underlying `Cluster` resource.
+
+```yaml
+{{ .Files.Get "ci/cluster-spec-values.yaml" | trimSuffix "\n" }}
+```
+
 ### Backup with barman-cloud plugin
 
 Renders an `ObjectStore` resource and wires the barman-cloud plugin into the `Cluster` spec.

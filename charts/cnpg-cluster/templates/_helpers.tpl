@@ -1,5 +1,5 @@
 {{- define "cnpg-cluster.fullname" -}}
-{{- .Values.nameOverride | default .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- .Values.fullnameOverride | default .Values.nameOverride | default .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "cnpg-cluster.labels" -}}
@@ -27,4 +27,76 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | quote }}
 {{- $_ := set $metadata "annotations" .metadata.annotations -}}
 {{- end -}}
 {{- toYaml $metadata -}}
+{{- end }}
+
+{{- define "cnpg.bootstrap" -}}
+{{- if not (empty .Values.initdb) }}
+bootstrap:
+  initdb:
+    {{- toYaml .Values.initdb | nindent 4 }}
+{{- else if not (empty .Values.recovery) }}
+bootstrap:
+  recovery:
+    {{- toYaml .Values.recovery | nindent 4 }}
+{{- else if not (empty .Values.pgBaseBackup) }}
+bootstrap:
+  pg_basebackup:
+    {{- toYaml .Values.pgBaseBackup | nindent 4 }}
+{{- end }}
+{{- end }}
+
+{{- define "cnpg.backup" -}}
+{{- if .Values.backup.volumeSnapshot.enabled }}
+backup:
+  target: {{ .Values.backup.target }}
+  retentionPolicy: {{ .Values.backup.retentionPolicy | quote }}
+  volumeSnapshot:
+    {{- with .Values.backup.volumeSnapshot.className }}
+    className: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.backup.volumeSnapshot.walClassName }}
+    walClassName: {{ . | quote }}
+    {{- end }}
+    online: {{ .Values.backup.volumeSnapshot.online }}
+    snapshotOwnerReference: {{ .Values.backup.volumeSnapshot.snapshotOwnerReference }}
+{{- end }}
+{{- end }}
+
+{{- define "cnpg.plugins" -}}
+{{- $plugins := deepCopy (.Values.plugins | default list) }}
+{{- if .Values.objectStore.enabled }}
+{{- $plugins = append $plugins (dict "name" "barman-cloud.cloudnative-pg.io" "isWALArchiver" true "parameters" (dict "barmanObjectName" (include "cnpg-cluster.fullname" .))) }}
+{{- end }}
+{{- if $plugins }}
+plugins:
+  {{- toYaml $plugins | nindent 2 }}
+{{- end }}
+{{- end }}
+
+{{- define "cnpg.managed" -}}
+{{- if .Values.roles }}
+managed:
+  roles:
+    {{- toYaml .Values.roles | nindent 4 }}
+{{- end }}
+{{- end }}
+
+{{- define "cnpg.monitoring" -}}
+{{- if .Values.monitoring.enabled }}
+monitoring:
+  enablePodMonitor: {{ .Values.monitoring.podMonitor.enabled }}
+  {{- with .Values.monitoring.podMonitor.relabelings }}
+  podMonitorRelabelings:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.monitoring.podMonitor.metricRelabelings }}
+  podMonitorMetricRelabelings:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  disableDefaultQueries: {{ .Values.monitoring.disableDefaultQueries }}
+  {{- with .Values.monitoring.customQueriesSecret }}
+  customQueriesSecret:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
 {{- end }}

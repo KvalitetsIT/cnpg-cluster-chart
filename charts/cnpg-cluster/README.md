@@ -34,15 +34,16 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| nameOverride | string | Release name | Override the Cluster name. |
+| nameOverride | string | Release name | Override the Cluster name. Equivalent to fullnameOverride for this chart. |
+| fullnameOverride | string | Release name | Override the full Cluster name. Takes precedence over nameOverride. |
 | metadata | object | {} | Metadata overrides for the Cluster resource. |
 | instances | int | 1 | Number of PostgreSQL instances in the cluster. |
+| enablePDB | string | auto | Manage the PodDisruptionBudget for the cluster. When null (default), the chart automatically sets this to `false` for single-instance clusters (instances=1) and leaves it unset (operator default: `true`) for multi-instance clusters. Set explicitly to `true` or `false` to override this behaviour. |
+| clusterSpec | object | {} | Passthrough for any ClusterSpec fields not explicitly exposed by chart values. Fields here are appended to the Cluster spec as-is. Do not duplicate keys already managed by other values. |
 | imageName | string | "" | Container image for PostgreSQL. Takes precedence over imageCatalogRef. |
 | imageCatalogRef | object | {} | Reference to an ImageCatalog or ClusterImageCatalog resource. |
 | imagePullPolicy | string | IfNotPresent | Image pull policy for the PostgreSQL container. |
 | imagePullSecrets | list | [] | Image pull secrets for private registries. |
-| postgresUID | int | -1 | UID for the postgres process. -1 means use the default from the image. |
-| postgresGID | int | -1 | GID for the postgres process. -1 means use the default from the image. |
 
 ### Storage
 
@@ -86,8 +87,6 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 |-----|------|---------|-------------|
 | replica | object | {} | Replica cluster configuration. Maps to spec.replica. |
 | replicationSlots | object | {} | Replication slot configuration. Maps to spec.replicationSlots. |
-| minSyncReplicas | int | 0 | Minimum number of synchronous standby replicas required for a commit to succeed. |
-| maxSyncReplicas | int | 0 | Maximum number of synchronous standby replicas. |
 
 ### Roles & Databases
 
@@ -135,7 +134,6 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 |-----|------|---------|-------------|
 | resources | object | {} | CPU and memory resource requests/limits for the PostgreSQL container. |
 | priorityClassName | string | "" | PriorityClass for the PostgreSQL pods. |
-| schedulerName | string | default Kubernetes scheduler | Custom scheduler name. |
 | nodeSelector | object | {} | Node selector for the PostgreSQL pods. |
 | tolerations | list | [] | Tolerations for the PostgreSQL pods. |
 | topologySpreadConstraints | list | [] | Topology spread constraints for the PostgreSQL pods. |
@@ -145,7 +143,6 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| certificates | object | {} | TLS certificate configuration. Maps to spec.certificates. |
 | enableSuperuserAccess | bool | true | Allow direct connections to the postgres superuser. |
 | superuserSecret | string | "" | Name of an existing secret containing the superuser password. |
 
@@ -155,22 +152,13 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 |-----|------|---------|-------------|
 | primaryUpdateMethod | string | switchover | Method used to perform a controlled switchover (switchover or restart). |
 | primaryUpdateStrategy | string | unsupervised | When to apply updates: unsupervised applies them automatically. |
-| logLevel | string | info | Log level for the instance manager (error, warning, info, debug, trace). |
-| switchoverDelay | int | 40 | Seconds to wait for a switchover to complete before forcing a failover. |
-| failoverDelay | int | 0 | Seconds to wait before triggering an automatic failover. |
-| startDelay | int | 30 | Seconds to wait for the instance to start before marking it as failed. |
-| stopDelay | int | 30 | Seconds to wait for the instance to stop cleanly before sending SIGKILL. |
-| smartShutdownTimeout | int | 120 | Seconds to wait for smart shutdown (idle connections drain) before switching to fast shutdown. |
 
 ### Metadata & Volumes
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| inheritedMetadata | object | {} | Labels and annotations inherited by all child resources (pods, PVCs, etc.). |
-| serviceAccountTemplate | object | {} | Template for the ServiceAccount created for the cluster pods. |
 | env | list | [] | Extra environment variables for the PostgreSQL container. |
 | envFrom | list | [] | Extra environment variables sourced from ConfigMaps or Secrets. |
-| projectedVolumeTemplate | object | {} | Projected volume template mounted into the PostgreSQL pods. |
 
 ### Poolers
 
@@ -222,6 +210,23 @@ imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@s
 instances: 1
 storage:
   size: 1Gi
+```
+
+### ClusterSpec passthrough
+
+Any field from the [ClusterSpec API](https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ClusterSpec) not exposed as a top-level chart value can be placed under `clusterSpec` and it will flow directly to the underlying `Cluster` resource.
+
+```yaml
+imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
+instances: 1
+storage:
+  size: 1Gi
+
+# Any field from the ClusterSpec not exposed as a top-level chart value can be
+# placed here and it will flow directly to the underlying Cluster resource.
+clusterSpec:
+  switchoverDelay: 40
+  startDelay: 30
 ```
 
 ### Backup with barman-cloud plugin
