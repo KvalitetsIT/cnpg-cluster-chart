@@ -121,10 +121,9 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 |-----|------|---------|-------------|
 | monitoring | object | see values.yaml | Monitoring configuration including PodMonitor and custom queries. |
 | monitoring.enabled | bool | false | Set to true to enable monitoring. |
-| monitoring.podMonitor.enabled | bool | true | Set to true to create a PodMonitor resource. |
-| monitoring.podMonitor.labels | object | {} | Additional labels to add to the PodMonitor. |
-| monitoring.podMonitor.relabelings | list | [] | Relabeling rules applied to scraped metrics. |
-| monitoring.podMonitor.metricRelabelings | list | [] | Metric relabeling rules applied after scraping. |
+| monitoring.enablePodMonitor | bool | true | Set to true to create a PodMonitor resource. |
+| monitoring.podMonitorRelabelings | list | [] | Relabeling rules applied to scraped metrics. |
+| monitoring.podMonitorMetricRelabelings | list | [] | Metric relabeling rules applied after scraping. |
 | monitoring.disableDefaultQueries | bool | false | Disable the default Prometheus queries shipped by CNPG. |
 | monitoring.customQueriesSecret | list | [] | References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml). |
 

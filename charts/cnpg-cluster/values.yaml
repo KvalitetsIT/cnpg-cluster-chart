@@ -212,23 +212,18 @@ monitoring:
   # @default -- false
   # @section -- Monitoring
   enabled: false
-  podMonitor:
-    # -- Set to true to create a PodMonitor resource.
-    # @default -- true
-    # @section -- Monitoring
-    enabled: true
-    # -- Additional labels to add to the PodMonitor.
-    # @default -- {}
-    # @section -- Monitoring
-    labels: {}
-    # -- Relabeling rules applied to scraped metrics.
-    # @default -- []
-    # @section -- Monitoring
-    relabelings: []
-    # -- Metric relabeling rules applied after scraping.
-    # @default -- []
-    # @section -- Monitoring
-    metricRelabelings: []
+  # -- Set to true to create a PodMonitor resource.
+  # @default -- true
+  # @section -- Monitoring
+  enablePodMonitor: true
+  # -- Relabeling rules applied to scraped metrics.
+  # @default -- []
+  # @section -- Monitoring
+  podMonitorRelabelings: []
+  # -- Metric relabeling rules applied after scraping.
+  # @default -- []
+  # @section -- Monitoring
+  podMonitorMetricRelabelings: []
   # -- Disable the default Prometheus queries shipped by CNPG.
   # @default -- false
   # @section -- Monitoring

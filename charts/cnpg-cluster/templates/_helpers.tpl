@@ -84,12 +84,12 @@ managed:
 {{- define "cnpg.monitoring" -}}
 {{- if .Values.monitoring.enabled }}
 monitoring:
-  enablePodMonitor: {{ .Values.monitoring.podMonitor.enabled }}
-  {{- with .Values.monitoring.podMonitor.relabelings }}
+  enablePodMonitor: {{ .Values.monitoring.enablePodMonitor }}
+  {{- with .Values.monitoring.podMonitorRelabelings }}
   podMonitorRelabelings:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.monitoring.podMonitor.metricRelabelings }}
+  {{- with .Values.monitoring.podMonitorMetricRelabelings }}
   podMonitorMetricRelabelings:
     {{- toYaml . | nindent 4 }}
   {{- end }}
