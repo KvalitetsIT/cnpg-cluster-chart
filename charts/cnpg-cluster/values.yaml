@@ -422,3 +422,12 @@ templates:
               rules:
                 dns:
                   - matchPattern: "*"
+
+        - toEndpoints:
+            - matchLabels:
+                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/instanceRole: primary
+          toPorts:
+            - ports:
+                - port: "5432"
+                  protocol: TCP
