@@ -13,13 +13,13 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 ## Source Code
 
 * <https://github.com/KvalitetsIT/cnpg-chart>
-* <https://github.com/KvalitetsIT/cnpg-chart/tree/main/charts/cnpg>
+* <https://github.com/KvalitetsIT/cnpg-chart/tree/main/charts/cnpg-cluster>
 
 ## Requirements
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/ | templates | 2.1.0 |
+| https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/ | templates | 2.1.1 |
 
 ## Values
 
