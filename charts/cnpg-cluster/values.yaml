@@ -63,7 +63,6 @@ imagePullPolicy: IfNotPresent
 # @section -- Cluster
 imagePullSecrets: []
 
-
 # -- PVC storage configuration for PostgreSQL data.
 # @default -- see values.yaml
 # @section -- Storage
@@ -144,7 +143,6 @@ replica: {}
 # @default -- {}
 # @section -- Replication
 replicationSlots: {}
-
 
 # -- Declarative role management. Maps to spec.managed.roles. See [example](#roles--databases-1) and the [RoleConfiguration API](https://cloudnative-pg.io/docs/1.29/cloudnative-pg.v1#roleconfiguration).
 # @default -- []
@@ -243,7 +241,6 @@ resources: {}
 # @section -- Resources & Scheduling
 priorityClassName: ""
 
-
 # -- Node selector for the PostgreSQL pods.
 # @default -- {}
 # @section -- Resources & Scheduling
@@ -263,7 +260,6 @@ topologySpreadConstraints: []
 # @default -- {}
 # @section -- Resources & Scheduling
 affinity: {}
-
 
 # -- Allow direct connections to the postgres superuser.
 # @default -- true
@@ -285,8 +281,6 @@ primaryUpdateMethod: switchover
 # @section -- Lifecycle
 primaryUpdateStrategy: unsupervised
 
-
-
 # -- Extra environment variables for the PostgreSQL container.
 # @default -- []
 # @section -- Metadata & Volumes
@@ -296,7 +290,6 @@ env: []
 # @default -- []
 # @section -- Metadata & Volumes
 envFrom: []
-
 
 # -- List of Pooler (PgBouncer) resources to create for this cluster.
 # @default -- []
@@ -407,3 +400,24 @@ templates:
             - ports:
                 - port: "8000"
                   protocol: TCP
+    cluster-join-netpol:
+      metadata:
+        name: "{{ .Release.Name }}-cnpg-cluster-join"
+      endpointSelector:
+        matchLabels:
+          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          cnpg.io/jobrole: join
+      egress:
+        - toEndpoints:
+            - matchLabels:
+                k8s:io.kubernetes.pod.namespace: kube-system
+                k8s:k8s-app: kube-dns
+          toPorts:
+            - ports:
+                - port: "53"
+                  protocol: UDP
+                - port: "53"
+                  protocol: TCP
+              rules:
+                dns:
+                  - matchPattern: "*"
