@@ -405,10 +405,10 @@ templates:
             - matchLabels:
                 app.kubernetes.io/instance: "{{ .Release.Name }}"
                 cnpg.io/jobRole: join
-              toPorts:
-                - ports:
-                    - port: "5432"
-                      protocol: TCP
+          toPorts:
+            - ports:
+                - port: "5432"
+                  protocol: TCP
 
     cluster-join-netpol:
       metadata:
