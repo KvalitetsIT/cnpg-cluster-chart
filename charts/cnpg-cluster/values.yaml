@@ -435,9 +435,38 @@ templates:
             - matchLabels:
                 app.kubernetes.io/instance: "{{ .Release.Name }}"
                 cnpg.io/jobRole: join
+            - matchLabels:
+                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/instanceRole: replica
           toPorts:
             - ports:
                 - port: "5432"
+                  protocol: TCP
+
+    cluster-replica:
+      metadata:
+        name: "{{ .Release.Name }}-cnpg-cluster-replica"
+      endpointSelector:
+        matchLabels:
+          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          cnpg.io/instanceRole: replica
+      egress:
+        - toEndpoints:
+            - matchLabels:
+                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/instanceRole: primary
+          toPorts:
+            - ports:
+                - port: "5432"
+                  protocol: TCP
+      ingress:
+        - fromEndpoints:
+            - matchLabels:
+                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/instanceRole: primary
+          toPorts:
+            - ports:
+                - port: "8000"
                   protocol: TCP
 
     cluster-join-netpol:
