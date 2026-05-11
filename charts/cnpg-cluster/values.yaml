@@ -402,10 +402,9 @@ templates:
                   protocol: TCP
 
         - fromEndpoints:
-            - fromEndpoints:
-                - matchLabels:
-                    app.kubernetes.io/instance: "{{ .Release.Name }}"
-                    cnpg.io/jobRole: join
+            - matchLabels:
+                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/jobRole: join
               toPorts:
                 - ports:
                     - port: "5432"
