@@ -400,13 +400,14 @@ templates:
             - ports:
                 - port: "8000"
                   protocol: TCP
+
     cluster-join-netpol:
       metadata:
         name: "{{ .Release.Name }}-cnpg-cluster-join"
       endpointSelector:
         matchLabels:
           app.kubernetes.io/instance: "{{ .Release.Name }}"
-          cnpg.io/jobrole: join
+          cnpg.io/jobRole: join
       egress:
         - toEndpoints:
             - matchLabels:
