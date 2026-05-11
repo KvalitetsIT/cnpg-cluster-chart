@@ -401,6 +401,16 @@ templates:
                 - port: "8000"
                   protocol: TCP
 
+        - fromEndpoints:
+            - fromEndpoints:
+                - matchLabels:
+                    app.kubernetes.io/instance: "{{ .Release.Name }}"
+                    cnpg.io/jobRole: join
+              toPorts:
+                - ports:
+                    - port: "5432"
+                      protocol: TCP
+
     cluster-join-netpol:
       metadata:
         name: "{{ .Release.Name }}-cnpg-cluster-join"
