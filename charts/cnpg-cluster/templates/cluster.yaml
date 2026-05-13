@@ -35,20 +35,12 @@ spec:
     {{- with .Values.storage.storageClass }}
     storageClass: {{ . | quote }}
     {{- end }}
-    {{- with .Values.storage.pvcTemplate }}
-    pvcTemplate:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
   {{- if .Values.walStorage.enabled }}
   walStorage:
     size: {{ .Values.walStorage.size | quote }}
     {{- with .Values.walStorage.storageClass }}
     storageClass: {{ . | quote }}
     {{- end }}
-  {{- end }}
-  {{- with .Values.ephemeralVolumesSizeLimit }}
-  ephemeralVolumesSizeLimit:
-    {{- toYaml . | nindent 4 }}
   {{- end }}
 
   {{- with .Values.postgresql }}
@@ -82,13 +74,11 @@ spec:
     name: {{ .Values.superuserSecret | quote }}
   {{- end }}
 
-  {{- /* Resources */}}
   {{- with .Values.resources }}
   resources:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 
-  {{- /* Scheduling */}}
   {{- with .Values.priorityClassName }}
   priorityClassName: {{ . | quote }}
   {{- end }}
