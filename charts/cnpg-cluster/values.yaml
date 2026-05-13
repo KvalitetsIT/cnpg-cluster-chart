@@ -469,6 +469,25 @@ templates:
                 - port: "8000"
                   protocol: TCP
 
+    cluster-prometheus:
+      metadata:
+        name: "{{ .Release.Name }}-cnpg-cluster-prometheus"
+      endpointSelector:
+        matchLabels:
+          app.kubernetes.io/instance: "{{ .Release.Name }}"
+      ingress:
+        - fromEndpoints:
+            - matchLabels:
+                "k8s:io.kubernetes.pod.namespace": infrastructure
+                app.kubernetes.io/name: prometheus
+            - matchLabels:
+                "k8s:io.kubernetes.pod.namespace": monitoring
+                app.kubernetes.io/name: prometheus
+          toPorts:
+            - ports:
+                - port: "9187"
+                  protocol: TCP
+
     cluster-join-netpol:
       metadata:
         name: "{{ .Release.Name }}-cnpg-cluster-join"
