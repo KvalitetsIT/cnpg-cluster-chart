@@ -1,5 +1,12 @@
 {{- if and .Values.objectStore.enabled .Values.global.objectStore.configuration.endpointURL }}
 {{- $name := include "cnpg-cluster.fullname" . }}
+{{- $endpointRaw := trim .Values.global.objectStore.configuration.endpointURL }}
+{{- $endpointNoScheme := regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" $endpointRaw "" }}
+{{- $endpointNoPath := regexReplaceAll "/.*$" $endpointNoScheme "" }}
+{{- $endpointFQDN := regexReplaceAll ":[0-9]+$" $endpointNoPath "" }}
+{{- if empty $endpointFQDN }}
+{{- fail "global.objectStore.configuration.endpointURL must contain a valid hostname" }}
+{{- end }}
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -14,7 +21,7 @@ spec:
       app.kubernetes.io/instance: {{ .Release.Name | quote }}
   egress:
     - toFQDNs:
-        - matchName: {{ .Values.global.objectStore.configuration.endpointURL | quote }}
+        - matchName: {{ $endpointFQDN | quote }}
       toPorts:
         - ports:
             - port: "443"
