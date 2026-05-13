@@ -1,8 +1,8 @@
 apiVersion: v2
 type: application
 name: cnpg-cluster
-version: 0.1.0-beta.15
-appVersion: 0.1.0-beta.15
+version: 0.1.0-beta.16
+appVersion: 0.1.0-beta.16
 description: >
   Helm chart for deploying CloudNativePG clusters and related resources. Ships with a default CiliumNetworkPolicy allowing the CNPG operator to reach cluster pods.
 
