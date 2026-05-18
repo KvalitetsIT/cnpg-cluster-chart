@@ -30,18 +30,18 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | quote }}
 {{- end }}
 
 {{- define "cnpg.bootstrap" -}}
-{{- if not (empty .Values.initdb) }}
+{{- $mode := "" -}}
+{{- $config := dict -}}
+{{- if not (empty .Values.initdb) -}}
+  {{- $mode = "initdb" -}}{{- $config = .Values.initdb -}}
+{{- else if not (empty .Values.recovery) -}}
+  {{- $mode = "recovery" -}}{{- $config = .Values.recovery -}}
+{{- else if not (empty .Values.pgBaseBackup) -}}
+  {{- $mode = "pg_basebackup" -}}{{- $config = .Values.pgBaseBackup -}}
+{{- end -}}
+{{- if $mode }}
 bootstrap:
-  initdb:
-    {{- toYaml .Values.initdb | nindent 4 }}
-{{- else if not (empty .Values.recovery) }}
-bootstrap:
-  recovery:
-    {{- toYaml .Values.recovery | nindent 4 }}
-{{- else if not (empty .Values.pgBaseBackup) }}
-bootstrap:
-  pg_basebackup:
-    {{- toYaml .Values.pgBaseBackup | nindent 4 }}
+  {{- toYaml (dict $mode $config) | nindent 2 }}
 {{- end }}
 {{- end }}
 

@@ -8,6 +8,10 @@
   {{- fail "either imageName or imageCatalogRef must be set (imageName is preferred)" }}
 {{- end }}
 
+{{- if gt (len (compact (list .Values.initdb .Values.recovery .Values.pgBaseBackup))) 1 }}
+  {{- fail "only one of initdb, recovery, or pgBaseBackup may be set" }}
+{{- end }}
+
 {{- if and .Values.objectStore.enabled .Values.objectStore.configuration.endpointURL }}
   {{- fail "objectStore.configuration.endpointURL is not supported. Use global.objectStore.configuration.endpointURL instead." }}
 {{- end }}
