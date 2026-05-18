@@ -3,6 +3,9 @@ instances: 1
 storage:
   size: 1Gi
 
+# endpointURL must be set under global so it propagates to subchart dependencies
+# (e.g. the CiliumNetworkPolicy egress rule). The barman-object-store template
+# reads it directly from global.objectStore.configuration.endpointURL.
 global:
   objectStore:
     configuration:

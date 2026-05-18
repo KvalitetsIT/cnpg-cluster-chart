@@ -172,7 +172,7 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | objectStore | object | see values.yaml | ObjectStore resource for the barman-cloud plugin. Enabling this automatically injects the plugin entry into the Cluster spec. |
 | objectStore.enabled | bool | false | Set to true to create an ObjectStore resource and enable the barman-cloud plugin. |
 | objectStore.retentionPolicy | string | "30d" | Backup retention policy. |
-| objectStore.configuration | object | see values.yaml | ObjectStore configuration. Set destinationPath and s3Credentials at minimum. |
+| objectStore.configuration | object | see values.yaml | ObjectStore configuration. Set destinationPath and s3Credentials at minimum. Note: endpointURL is set under global.objectStore.configuration.endpointURL (not here), so it propagates to subchart dependencies such as the CiliumNetworkPolicy egress template. Setting it here instead will produce a validation error at render time. |
 | objectStore.configuration.destinationPath | string | "" | S3 destination path for backups (e.g. s3://my-bucket/my-cluster). Required. |
 | objectStore.configuration.s3Credentials | object | {} | S3 credentials referencing Kubernetes secret keys. |
 | objectStore.configuration.s3Credentials.accessKeyId | object | {} | Secret key reference for the S3 access key ID. |
@@ -233,12 +233,20 @@ clusterSpec:
 Renders an `ObjectStore` resource and wires the barman-cloud plugin into the `Cluster` spec.
 Requires the barman-cloud CNPG plugin to be installed in the cluster.
 
+> [!NOTE]
+> `endpointURL` must be set under `global.objectStore.configuration.endpointURL` — **not** under `objectStore.configuration`.
+> This is required so the value propagates to subchart dependencies, including the CiliumNetworkPolicy egress rule that allows cluster pods to reach the S3 endpoint.
+> Setting it under `objectStore.configuration` will produce a validation error at render time.
+
 ```yaml
 imageName: ghcr.io/cloudnative-pg/postgresql:18.3-202604270853-system-bookworm@sha256:73110ae76402e63a849eb4f4dfb7608d2222758cbf2d66a2df60628458b9cd4f
 instances: 1
 storage:
   size: 1Gi
 
+# endpointURL must be set under global so it propagates to subchart dependencies
+# (e.g. the CiliumNetworkPolicy egress rule). The barman-object-store template
+# reads it directly from global.objectStore.configuration.endpointURL.
 global:
   objectStore:
     configuration:

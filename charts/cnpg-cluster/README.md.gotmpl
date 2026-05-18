@@ -41,8 +41,13 @@ Any field from the [ClusterSpec API](https://cloudnative-pg.io/docs/1.29/cloudna
 Renders an `ObjectStore` resource and wires the barman-cloud plugin into the `Cluster` spec.
 Requires the barman-cloud CNPG plugin to be installed in the cluster.
 
+> [!NOTE]
+> `endpointURL` must be set under `global.objectStore.configuration.endpointURL` — **not** under `objectStore.configuration`.
+> This is required so the value propagates to subchart dependencies, including the CiliumNetworkPolicy egress rule that allows cluster pods to reach the S3 endpoint.
+> Setting it under `objectStore.configuration` will produce a validation error at render time.
+
 ```yaml
-{{ .Files.Get "ci/barman-plugin-cluster-values.yaml" | trimSuffix "\n" }}
+{{ .Files.Get "ci/barman-plugin-values.yaml" | trimSuffix "\n" }}
 ```
 
 ### Recovery from backup

@@ -310,6 +310,9 @@ objectStore:
   # @section -- Object Store
   retentionPolicy: "30d"
   # -- ObjectStore configuration. Set destinationPath and s3Credentials at minimum.
+  # Note: endpointURL is set under global.objectStore.configuration.endpointURL (not here),
+  # so it propagates to subchart dependencies such as the CiliumNetworkPolicy egress template.
+  # Setting it here instead will produce a validation error at render time.
   # @default -- see values.yaml
   # @section -- Object Store
   configuration:
