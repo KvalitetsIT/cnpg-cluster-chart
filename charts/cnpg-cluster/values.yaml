@@ -417,7 +417,7 @@ ciliumNetworkPolicies:
     endpointSelector:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-        cnpg.io/jobrole: initdb
+        cnpg.io/jobRole: initdb
     egress:
       - toEntities:
           - kube-apiserver
@@ -478,7 +478,7 @@ networkPolicies:
     podSelector:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-        cnpg.io/jobrole: initdb
+        cnpg.io/jobRole: initdb
     egress:
       # API Server
       - to:
@@ -494,13 +494,13 @@ networkPolicies:
     podSelector:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-        cnpg.io/instancerole: primary
+        cnpg.io/instanceRole: primary
     egress:
       - to:
           - podSelector:
               matchLabels:
                 cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-                cnpg.io/instancerole: replica
+                cnpg.io/instanceRole: replica
         ports:
           - port: 8000
             protocol: TCP
@@ -509,11 +509,11 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-                cnpg.io/jobrole: join
+                cnpg.io/jobRole: join
           - podSelector:
               matchLabels:
                 cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-                cnpg.io/instancerole: replica
+                cnpg.io/instanceRole: replica
         ports:
           - port: 5432
             protocol: TCP
@@ -522,13 +522,13 @@ networkPolicies:
     podSelector:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-        cnpg.io/instancerole: replica
+        cnpg.io/instanceRole: replica
     egress:
       - to:
           - podSelector:
               matchLabels:
                 cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-                cnpg.io/instancerole: primary
+                cnpg.io/instanceRole: primary
         ports:
           - port: 5432
             protocol: TCP
@@ -537,7 +537,7 @@ networkPolicies:
           - podSelector:
               matchLabels:
                 cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-                cnpg.io/instancerole: primary
+                cnpg.io/instanceRole: primary
         ports:
           - port: 8000
             protocol: TCP
@@ -546,13 +546,13 @@ networkPolicies:
     podSelector:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-        cnpg.io/jobrole: join
+        cnpg.io/jobRole: join
     egress:
       - to:
           - podSelector:
               matchLabels:
                 cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-                cnpg.io/instancerole: primary
+                cnpg.io/instanceRole: primary
         ports:
           - port: 5432
             protocol: TCP
