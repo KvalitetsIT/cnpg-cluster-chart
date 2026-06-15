@@ -186,11 +186,12 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | objectStore.instanceSidecarConfiguration.resources.requests.memory | string | 256Mi | Memory request for the barman-cloud sidecar. |
 | objectStore.instanceSidecarConfiguration.resources.requests.cpu | string | 250m | CPU request for the barman-cloud sidecar. |
 
-### Other Values
+### Network Policies
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| templates | object | see values.yaml | CiliumNetworkPolicy and other resources rendered via the KvalitetsIT templates chart. |
+| ciliumNetworkPolicies | object | see values.yaml | CiliumNetworkPolicy resources. Each entry is rendered by the templates chart helper with root set to this chart's context, so template strings (e.g. include "cnpg-cluster.fullname") resolve correctly. The map key is used as a name suffix; the cluster fullname is prepended automatically. Set enabled: false on any entry to suppress it. |
+| networkPolicies | object | see values.yaml | Standard NetworkPolicy resources for pod-to-pod traffic that does not require Cilium-specific features. Rendered with the same iterator pattern as ciliumNetworkPolicies. |
 
 ## Usage
 
