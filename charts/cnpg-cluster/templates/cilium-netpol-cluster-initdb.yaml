@@ -1,0 +1,19 @@
+{{- define "cnpg-cluster.netpol.cluster-initdb" -}}
+{{- $name := include "cnpg-cluster.fullname" . -}}
+endpointSelector:
+  matchLabels:
+    cnpg.io/cluster: {{ $name }}
+    cnpg.io/jobRole: initdb
+egress:
+  - toEntities:
+      - kube-apiserver
+    toPorts:
+      - ports:
+          - port: "6443"
+            protocol: TCP
+{{- end -}}
+{{- include "templates.ciliumNetworkPolicy" (dict
+  "root" $
+  "name" (printf "%s-cnpg-cluster-initdb" (include "cnpg-cluster.fullname" .))
+  "value" (include "cnpg-cluster.netpol.cluster-initdb" . | fromYaml)
+) }}

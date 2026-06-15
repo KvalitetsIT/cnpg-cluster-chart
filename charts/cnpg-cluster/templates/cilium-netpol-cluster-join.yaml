@@ -1,0 +1,21 @@
+{{- define "cnpg-cluster.netpol.cluster-join" -}}
+{{- $name := include "cnpg-cluster.fullname" . -}}
+endpointSelector:
+  matchLabels:
+    cnpg.io/cluster: {{ $name }}
+    cnpg.io/jobRole: join
+egress:
+  - toEndpoints:
+      - matchLabels:
+          cnpg.io/cluster: {{ $name }}
+          cnpg.io/instanceRole: primary
+    toPorts:
+      - ports:
+          - port: "5432"
+            protocol: TCP
+{{- end -}}
+{{- include "templates.ciliumNetworkPolicy" (dict
+  "root" $
+  "name" (printf "%s-cnpg-cluster-join" (include "cnpg-cluster.fullname" .))
+  "value" (include "cnpg-cluster.netpol.cluster-join" . | fromYaml)
+) }}

@@ -1,0 +1,23 @@
+{{- define "cnpg-cluster.netpol.cluster-prometheus" -}}
+{{- $name := include "cnpg-cluster.fullname" . -}}
+endpointSelector:
+  matchLabels:
+    cnpg.io/cluster: {{ $name }}
+ingress:
+  - fromEndpoints:
+      - matchLabels:
+          k8s:io.kubernetes.pod.namespace: infrastructure
+          app.kubernetes.io/name: prometheus
+      - matchLabels:
+          k8s:io.kubernetes.pod.namespace: monitoring
+          app.kubernetes.io/name: prometheus
+    toPorts:
+      - ports:
+          - port: "9187"
+            protocol: TCP
+{{- end -}}
+{{- include "templates.ciliumNetworkPolicy" (dict
+  "root" $
+  "name" (printf "%s-cnpg-cluster-prometheus" (include "cnpg-cluster.fullname" .))
+  "value" (include "cnpg-cluster.netpol.cluster-prometheus" . | fromYaml)
+) }}
