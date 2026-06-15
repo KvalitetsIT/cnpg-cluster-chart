@@ -1,9 +1,11 @@
 {{- range $name, $value := (.Values.networkPolicies | default dict) }}
 {{- if and $value (ne $value.enabled false) }}
+{{- if not (hasKey ($.Values.ciliumNetworkPolicies | default dict) $name) }}
 {{- include "templates.networkPolicy" (dict
   "root" $
   "name" (printf "%s-%s" (include "cnpg-cluster.fullname" $) $name)
   "value" $value
 ) }}
+{{- end }}
 {{- end }}
 {{- end }}

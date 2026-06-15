@@ -1,10 +1,17 @@
-{{- if .Capabilities.APIVersions.Has "cilium.io/v2" }}
 {{- range $name, $value := (.Values.ciliumNetworkPolicies | default dict) }}
 {{- if and $value (ne $value.enabled false) }}
+{{- if $.Capabilities.APIVersions.Has "cilium.io/v2" }}
 {{- include "templates.ciliumNetworkPolicy" (dict
   "root" $
   "name" (printf "%s-%s" (include "cnpg-cluster.fullname" $) $name)
   "value" $value
+) }}
+{{- else if hasKey ($.Values.networkPolicies | default dict) $name }}
+{{- $fallback := index ($.Values.networkPolicies | default dict) $name }}
+{{- include "templates.networkPolicy" (dict
+  "root" $
+  "name" (printf "%s-%s" (include "cnpg-cluster.fullname" $) $name)
+  "value" $fallback
 ) }}
 {{- end }}
 {{- end }}

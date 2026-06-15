@@ -431,6 +431,51 @@ ciliumNetworkPolicies:
 # @default -- see values.yaml
 # @section -- Network Policies
 networkPolicies:
+  cnpg-cluster:
+    podSelector:
+      matchLabels:
+        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+    egress:
+      - ports:
+          - port: 6443
+            protocol: TCP
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: cnpg-system
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: cloudnative-pg
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: data-storage-services
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: cloudnative-pg
+        ports:
+          - port: 8000
+            protocol: TCP
+
+  cnpg-cluster-initdb:
+    podSelector:
+      matchLabels:
+        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+        cnpg.io/jobRole: initdb
+    egress:
+      - ports:
+          - port: 6443
+            protocol: TCP
+
   cnpg-cluster-primary:
     podSelector:
       matchLabels:
