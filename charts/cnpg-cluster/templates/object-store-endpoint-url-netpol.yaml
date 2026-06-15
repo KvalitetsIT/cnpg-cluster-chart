@@ -18,7 +18,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      cnpg.io/cluster: {{ $name | quote }}
   egress:
     - toFQDNs:
         - matchName: {{ $endpointFQDN | quote }}
