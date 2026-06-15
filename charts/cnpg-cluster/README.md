@@ -34,8 +34,7 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| nameOverride | string | Release name | Override the Cluster name. Equivalent to fullnameOverride for this chart. |
-| fullnameOverride | string | Release name | Override the full Cluster name. Takes precedence over nameOverride. |
+| nameOverride | string | Release name | Override the Cluster name. |
 | metadata | object | {} | Metadata overrides for the Cluster resource. |
 | instances | int | 1 | Number of PostgreSQL instances in the cluster. |
 | enablePDB | string | auto | Manage the PodDisruptionBudget for the cluster. When null (default), the chart automatically sets this to `false` for single-instance clusters (instances=1) and leaves it unset (operator default: `true`) for multi-instance clusters. Set explicitly to `true` or `false` to override this behaviour. |
