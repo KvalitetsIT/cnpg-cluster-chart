@@ -436,6 +436,7 @@ networkPolicies:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
     egress:
+      # API Server
       - to:
           - ipBlock:
               cidr: 10.96.0.1/32
@@ -444,6 +445,7 @@ networkPolicies:
         ports:
           - port: 6443
             protocol: TCP
+      # DNS
       - to:
           - ipBlock:
               cidr: 169.254.20.10/32
@@ -478,6 +480,7 @@ networkPolicies:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
         cnpg.io/jobRole: initdb
     egress:
+      # API Server
       - to:
           - ipBlock:
               cidr: 10.96.0.1/32
