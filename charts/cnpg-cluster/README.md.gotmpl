@@ -16,8 +16,22 @@
 ## Usage
 
 This is a Helm chart for deploying CloudNativePG clusters and related resources.
-By default it renders a `CiliumNetworkPolicy` that allows the CNPG operator to reach cluster pods.
 Configure the sections below to deploy a cluster and additional resources.
+
+### Network policies
+
+The chart ships with network policies enabled by default. When Cilium is present (`cilium.io/v2` CRD available), `CiliumNetworkPolicy` resources are rendered; otherwise standard `NetworkPolicy` resources are used as a fallback.
+
+The following policies are rendered by default:
+
+| Policy | Type | Purpose |
+|--------|------|---------|
+| `<name>-cnpg-cluster` | Cilium / fallback | Allows all cluster pods to reach the kube-apiserver and CoreDNS. Allows the CNPG operator to reach cluster pods on port 8000. |
+| `<name>-cnpg-cluster-initdb` | Cilium / fallback | Allows initdb job pods to reach the kube-apiserver. |
+| `<name>-cnpg-cluster-intracluster` | Cilium / fallback | Allows all pods in the same CNPG cluster to communicate with each other on ports 5432 (PostgreSQL) and 8000 (health/metrics). This uses `cnpg.io/cluster` as the selector rather than role-specific labels, which is necessary because pods require network access during startup before the operator has assigned `instanceRole` or `jobRole` labels. |
+| `<name>-cnpg-cluster-prometheus` | NetworkPolicy | Allows Prometheus to scrape cluster pods on port 9187. |
+
+Additional policies or overrides can be added via `ciliumNetworkPolicies` and `networkPolicies` in `values.yaml`.
 
 ### Cluster
 
