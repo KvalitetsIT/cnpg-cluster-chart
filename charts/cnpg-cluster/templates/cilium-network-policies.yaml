@@ -1,0 +1,9 @@
+{{- range $name, $value := (.Values.ciliumNetworkPolicies | default dict) }}
+{{- if and $value (ne $value.enabled false) }}
+{{- include "templates.ciliumNetworkPolicy" (dict
+  "root" $
+  "name" (printf "%s-%s" (include "cnpg-cluster.fullname" $) $name)
+  "value" $value
+) }}
+{{- end }}
+{{- end }}
