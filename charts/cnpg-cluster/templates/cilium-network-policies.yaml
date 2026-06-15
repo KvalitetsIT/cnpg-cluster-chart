@@ -1,3 +1,4 @@
+{{- if .Capabilities.APIVersions.Has "cilium.io/v2" }}
 {{- range $name, $value := (.Values.ciliumNetworkPolicies | default dict) }}
 {{- if and $value (ne $value.enabled false) }}
 {{- include "templates.ciliumNetworkPolicy" (dict
@@ -5,5 +6,6 @@
   "name" (printf "%s-%s" (include "cnpg-cluster.fullname" $) $name)
   "value" $value
 ) }}
+{{- end }}
 {{- end }}
 {{- end }}
