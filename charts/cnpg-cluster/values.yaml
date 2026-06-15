@@ -378,7 +378,7 @@ templates:
         name: "{{ include \"cnpg-cluster.fullname\" . }}-cnpg-cluster"
       endpointSelector:
         matchLabels:
-          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
       egress:
         - toEntities:
             - kube-apiserver
@@ -417,12 +417,12 @@ templates:
         name: "{{ include \"cnpg-cluster.fullname\" . }}-cnpg-cluster-primary"
       endpointSelector:
         matchLabels:
-          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
           cnpg.io/instanceRole: primary
       egress:
         - toEndpoints:
             - matchLabels:
-                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
                 cnpg.io/instanceRole: replica
           toPorts:
             - ports:
@@ -431,10 +431,10 @@ templates:
       ingress:
         - fromEndpoints:
             - matchLabels:
-                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
                 cnpg.io/jobRole: join
             - matchLabels:
-                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
                 cnpg.io/instanceRole: replica
           toPorts:
             - ports:
@@ -446,12 +446,12 @@ templates:
         name: "{{ include \"cnpg-cluster.fullname\" . }}-cnpg-cluster-replica"
       endpointSelector:
         matchLabels:
-          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
           cnpg.io/instanceRole: replica
       egress:
         - toEndpoints:
             - matchLabels:
-                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
                 cnpg.io/instanceRole: primary
           toPorts:
             - ports:
@@ -460,7 +460,7 @@ templates:
       ingress:
         - fromEndpoints:
             - matchLabels:
-                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
                 cnpg.io/instanceRole: primary
           toPorts:
             - ports:
@@ -472,7 +472,7 @@ templates:
         name: "{{ include \"cnpg-cluster.fullname\" . }}-cnpg-cluster-prometheus"
       endpointSelector:
         matchLabels:
-          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
       ingress:
         - fromEndpoints:
             - matchLabels:
@@ -506,12 +506,12 @@ templates:
         name: "{{ include \"cnpg-cluster.fullname\" . }}-cnpg-cluster-join"
       endpointSelector:
         matchLabels:
-          app.kubernetes.io/instance: "{{ .Release.Name }}"
+          cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
           cnpg.io/jobRole: join
       egress:
         - toEndpoints:
             - matchLabels:
-                app.kubernetes.io/instance: "{{ .Release.Name }}"
+                cnpg.io/cluster: "{{ include \"cnpg-cluster.fullname\" . }}"
                 cnpg.io/instanceRole: primary
           toPorts:
             - ports:
