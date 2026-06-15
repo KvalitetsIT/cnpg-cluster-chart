@@ -413,74 +413,6 @@ ciliumNetworkPolicies:
               - port: "8000"
                 protocol: TCP
 
-  cnpg-cluster-primary:
-    endpointSelector:
-      matchLabels:
-        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-        cnpg.io/instanceRole: primary
-    egress:
-      - toEndpoints:
-          - matchLabels:
-              cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-              cnpg.io/instanceRole: replica
-        toPorts:
-          - ports:
-              - port: "8000"
-                protocol: TCP
-    ingress:
-      - fromEndpoints:
-          - matchLabels:
-              cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-              cnpg.io/jobRole: join
-          - matchLabels:
-              cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-              cnpg.io/instanceRole: replica
-        toPorts:
-          - ports:
-              - port: "5432"
-                protocol: TCP
-
-  cnpg-cluster-replica:
-    endpointSelector:
-      matchLabels:
-        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-        cnpg.io/instanceRole: replica
-    egress:
-      - toEndpoints:
-          - matchLabels:
-              cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-              cnpg.io/instanceRole: primary
-        toPorts:
-          - ports:
-              - port: "5432"
-                protocol: TCP
-    ingress:
-      - fromEndpoints:
-          - matchLabels:
-              cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-              cnpg.io/instanceRole: primary
-        toPorts:
-          - ports:
-              - port: "8000"
-                protocol: TCP
-
-  cnpg-cluster-prometheus:
-    endpointSelector:
-      matchLabels:
-        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-    ingress:
-      - fromEndpoints:
-          - matchLabels:
-              k8s:io.kubernetes.pod.namespace: infrastructure
-              app.kubernetes.io/name: prometheus
-          - matchLabels:
-              k8s:io.kubernetes.pod.namespace: monitoring
-              app.kubernetes.io/name: prometheus
-        toPorts:
-          - ports:
-              - port: "9187"
-                protocol: TCP
-
   cnpg-cluster-initdb:
     endpointSelector:
       matchLabels:
@@ -494,17 +426,96 @@ ciliumNetworkPolicies:
               - port: "6443"
                 protocol: TCP
 
+# -- Standard NetworkPolicy resources for pod-to-pod traffic that does not require
+# Cilium-specific features. Rendered with the same iterator pattern as ciliumNetworkPolicies.
+# @default -- see values.yaml
+# @section -- Network Policies
+networkPolicies:
+  cnpg-cluster-primary:
+    podSelector:
+      matchLabels:
+        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+        cnpg.io/instanceRole: primary
+    egress:
+      - to:
+          - podSelector:
+              matchLabels:
+                cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+                cnpg.io/instanceRole: replica
+        ports:
+          - port: 8000
+            protocol: TCP
+    ingress:
+      - from:
+          - podSelector:
+              matchLabels:
+                cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+                cnpg.io/jobRole: join
+          - podSelector:
+              matchLabels:
+                cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+                cnpg.io/instanceRole: replica
+        ports:
+          - port: 5432
+            protocol: TCP
+
+  cnpg-cluster-replica:
+    podSelector:
+      matchLabels:
+        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+        cnpg.io/instanceRole: replica
+    egress:
+      - to:
+          - podSelector:
+              matchLabels:
+                cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+                cnpg.io/instanceRole: primary
+        ports:
+          - port: 5432
+            protocol: TCP
+    ingress:
+      - from:
+          - podSelector:
+              matchLabels:
+                cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+                cnpg.io/instanceRole: primary
+        ports:
+          - port: 8000
+            protocol: TCP
+
   cnpg-cluster-join:
-    endpointSelector:
+    podSelector:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
         cnpg.io/jobRole: join
     egress:
-      - toEndpoints:
-          - matchLabels:
-              cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
-              cnpg.io/instanceRole: primary
-        toPorts:
-          - ports:
-              - port: "5432"
-                protocol: TCP
+      - to:
+          - podSelector:
+              matchLabels:
+                cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+                cnpg.io/instanceRole: primary
+        ports:
+          - port: 5432
+            protocol: TCP
+
+  cnpg-cluster-prometheus:
+    podSelector:
+      matchLabels:
+        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: infrastructure
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: prometheus
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: monitoring
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: prometheus
+        ports:
+          - port: 9187
+            protocol: TCP
