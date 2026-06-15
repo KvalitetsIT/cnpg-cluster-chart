@@ -19,7 +19,7 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/ | templates | 2.1.1 |
+| https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/ | templates | 2.2.0 |
 
 ## Values
 

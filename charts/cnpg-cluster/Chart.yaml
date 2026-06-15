@@ -17,5 +17,5 @@ maintainers:
     url: https://github.com/KvalitetsIT/helm-repo
 dependencies:
   - name: templates
-    version: 2.1.1
+    version: 2.2.0
     repository: https://raw.githubusercontent.com/KvalitetsIT/helm-repo/master/

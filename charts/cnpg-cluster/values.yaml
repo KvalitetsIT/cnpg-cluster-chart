@@ -491,6 +491,21 @@ templates:
                 - port: "9187"
                   protocol: TCP
 
+    cluster-initdb-netpol:
+      metadata:
+        name: "{{ .Release.Name }}-cnpg-cluster-initdb"
+      endpointSelector:
+        matchLabels:
+          cnpg.io/cluster: "{{ .Release.Name }}"
+          cnpg.io/jobRole: initdb
+      egress:
+        - toEntities:
+            - kube-apiserver
+          toPorts:
+            - ports:
+                - port: "6443"
+                  protocol: TCP
+
     cluster-join-netpol:
       metadata:
         name: "{{ .Release.Name }}-cnpg-cluster-join"
