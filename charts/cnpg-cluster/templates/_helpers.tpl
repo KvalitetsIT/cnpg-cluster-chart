@@ -1,5 +1,5 @@
 {{- define "cnpg-cluster.fullname" -}}
-{{- .Values.fullnameOverride | default .Values.nameOverride | default .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- .Values.nameOverride | default .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "cnpg-cluster.labels" -}}
