@@ -436,13 +436,19 @@ networkPolicies:
       matchLabels:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
     egress:
-      - ports:
+      - to:
+          - ipBlock:
+              cidr: 10.96.0.1/32
+          - ipBlock:
+              cidr: 10.43.0.1/32
+        ports:
           - port: 6443
             protocol: TCP
       - to:
-          - namespaceSelector:
-              matchLabels:
-                kubernetes.io/metadata.name: kube-system
+          - ipBlock:
+              cidr: 169.254.20.10/32
+          - ipBlock:
+              cidr: 10.43.0.10/32
         ports:
           - port: 53
             protocol: UDP
@@ -472,7 +478,12 @@ networkPolicies:
         cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
         cnpg.io/jobRole: initdb
     egress:
-      - ports:
+      - to:
+          - ipBlock:
+              cidr: 10.96.0.1/32
+          - ipBlock:
+              cidr: 10.43.0.1/32
+        ports:
           - port: 6443
             protocol: TCP
 
