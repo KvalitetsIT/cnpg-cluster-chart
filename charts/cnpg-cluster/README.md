@@ -12,8 +12,8 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 
 ## Source Code
 
-* <https://github.com/KvalitetsIT/cnpg-chart>
-* <https://github.com/KvalitetsIT/cnpg-chart/tree/main/charts/cnpg-cluster>
+* <https://github.com/KvalitetsIT/cnpg-cluster-chart>
+* <https://github.com/KvalitetsIT/cnpg-cluster-chart/tree/main/charts/cnpg-cluster>
 
 ## Requirements
 
