@@ -259,7 +259,7 @@ affinity: {}
 # -- Allow direct connections to the postgres superuser.
 # @default -- true
 # @section -- Access & Security
-enableSuperuserAccess: true
+enableSuperuserAccess: false
 
 # -- Name of an existing secret containing the superuser password.
 # @default -- ""
@@ -355,10 +355,6 @@ objectStore:
         # @default -- 512Mi
         # @section -- Object Store
         memory: 512Mi
-        # -- CPU limit for the barman-cloud sidecar.
-        # @default -- 500m
-        # @section -- Object Store
-        cpu: 500m
       requests:
         # -- Memory request for the barman-cloud sidecar.
         # @default -- 256Mi
