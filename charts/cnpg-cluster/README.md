@@ -182,7 +182,6 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | objectStore.configuration.data.jobs | int | 8 | Number of parallel data upload workers. |
 | objectStore.instanceSidecarConfiguration | object | see values.yaml | Sidecar container configuration for the barman-cloud plugin. |
 | objectStore.instanceSidecarConfiguration.resources.limits.memory | string | 512Mi | Memory limit for the barman-cloud sidecar. |
-| objectStore.instanceSidecarConfiguration.resources.limits.cpu | string | 500m | CPU limit for the barman-cloud sidecar. |
 | objectStore.instanceSidecarConfiguration.resources.requests.memory | string | 256Mi | Memory request for the barman-cloud sidecar. |
 | objectStore.instanceSidecarConfiguration.resources.requests.cpu | string | 250m | CPU request for the barman-cloud sidecar. |
 
