@@ -404,6 +404,9 @@ ciliumNetworkPolicies:
           - matchLabels:
               k8s:io.kubernetes.pod.namespace: data-storage-services
               app.kubernetes.io/name: cloudnative-pg
+          - matchLabels:
+              k8s:io.kubernetes.pod.namespace: postgresql-services
+              app.kubernetes.io/name: cloudnative-pg
         toPorts:
           - ports:
               - port: "8000"
