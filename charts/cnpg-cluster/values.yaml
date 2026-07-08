@@ -447,6 +447,23 @@ ciliumNetworkPolicies:
               - port: "8000"
                 protocol: TCP
 
+  cnpg-cluster-prometheus:
+    endpointSelector:
+      matchLabels:
+        cnpg.io/cluster: '{{ include "cnpg-cluster.fullname" . }}'
+    ingress:
+      - fromEndpoints:
+          - matchLabels:
+              io.kubernetes.pod.namespace: infrastructure
+              app.kubernetes.io/name: prometheus
+          - matchLabels:
+              io.kubernetes.pod.namespace: monitoring
+              app.kubernetes.io/name: prometheus
+        toPorts:
+          - ports:
+              - port: "9187"
+                protocol: TCP
+
 # -- Standard NetworkPolicy resources for pod-to-pod traffic that does not require
 # Cilium-specific features. Rendered with the same iterator pattern as ciliumNetworkPolicies.
 # @default -- see values.yaml
