@@ -225,6 +225,40 @@ monitoring:
   # @default -- []
   # @section -- Monitoring
   customQueriesSecret: []
+  # -- PrometheusRule configuration for alerting.
+  # @default -- see values.yaml
+  # @section -- Monitoring
+  prometheusRule:
+    # -- Set to true to create a PrometheusRule with CNPG alerting rules.
+    # Requires monitoring.enabled: true and the monitoring.coreos.com/v1 CRD.
+    # @default -- false
+    # @section -- Monitoring
+    enabled: false
+    # -- List of alert names to exclude from the PrometheusRule.
+    # Useful for silencing alerts that are expected or not applicable to your setup.
+    # For example, single-instance clusters will always trigger CNPGClusterHACritical
+    # and CNPGClusterHAWarning, so you may want to exclude them.
+    # Clusters without zone spread configured will always trigger CNPGClusterZoneSpreadWarning.
+    # Clusters without logical replication can exclude all CNPGClusterLogicalReplication* alerts.
+    #
+    # Example - single-instance cluster without zone spread:
+    #   excludeRules:
+    #     - CNPGClusterHACritical
+    #     - CNPGClusterHAWarning
+    #     - CNPGClusterZoneSpreadWarning
+    #
+    # Example - exclude all logical replication alerts:
+    #   excludeRules:
+    #     - CNPGClusterLogicalReplicationErrors
+    #     - CNPGClusterLogicalReplicationErrorsCritical
+    #     - CNPGClusterLogicalReplicationLagging
+    #     - CNPGClusterLogicalReplicationLaggingCritical
+    #     - CNPGClusterLogicalReplicationStopped
+    #     - CNPGClusterLogicalReplicationStoppedCritical
+    #
+    # @default -- []
+    # @section -- Monitoring
+    excludeRules: []
 
 # -- CPU and memory resource requests/limits for the PostgreSQL container.
 # @default -- {}
