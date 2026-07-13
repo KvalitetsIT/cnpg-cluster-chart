@@ -1,4 +1,4 @@
-{{- if and .Values.objectStore.enabled .Values.global.objectStore.configuration.endpointURL }}
+{{- if and .Values.objectStore.enabled .Values.global.objectStore.configuration.endpointURL (.Capabilities.APIVersions.Has "cilium.io/v2") }}
 {{- $name := include "cnpg-cluster.fullname" . }}
 {{- $endpointRaw := trim .Values.global.objectStore.configuration.endpointURL }}
 {{- $endpointNoScheme := regexReplaceAll "^[a-zA-Z][a-zA-Z0-9+.-]*://" $endpointRaw "" }}
