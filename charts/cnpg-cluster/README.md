@@ -125,6 +125,9 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | monitoring.podMonitorMetricRelabelings | list | [] | Metric relabeling rules applied after scraping. |
 | monitoring.disableDefaultQueries | bool | false | Disable the default Prometheus queries shipped by CNPG. |
 | monitoring.customQueriesSecret | list | [] | References to secrets containing custom Prometheus queries (ConfigMap key: custom-queries.yaml). |
+| monitoring.prometheusRule | object | see values.yaml | PrometheusRule configuration for alerting. |
+| monitoring.prometheusRule.enabled | bool | false | Set to true to create a PrometheusRule with CNPG alerting rules. Requires monitoring.enabled: true and the monitoring.coreos.com/v1 CRD. |
+| monitoring.prometheusRule.excludeRules | list | [] | List of alert names to exclude from the PrometheusRule. Useful for silencing alerts that are expected or not applicable to your setup. For example, single-instance clusters will always trigger CNPGClusterHACritical and CNPGClusterHAWarning, so you may want to exclude them. Clusters without zone spread configured will always trigger CNPGClusterZoneSpreadWarning. Clusters without logical replication can exclude all CNPGClusterLogicalReplication* alerts.  Example - single-instance cluster without zone spread:   excludeRules:     - CNPGClusterHACritical     - CNPGClusterHAWarning     - CNPGClusterZoneSpreadWarning  Example - exclude all logical replication alerts:   excludeRules:     - CNPGClusterLogicalReplicationErrors     - CNPGClusterLogicalReplicationErrorsCritical     - CNPGClusterLogicalReplicationLagging     - CNPGClusterLogicalReplicationLaggingCritical     - CNPGClusterLogicalReplicationStopped     - CNPGClusterLogicalReplicationStoppedCritical  |
 
 ### Resources & Scheduling
 
