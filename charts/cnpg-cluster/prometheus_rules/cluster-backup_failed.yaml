@@ -6,9 +6,9 @@ annotations:
   description: |-
     Backup for CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" has failed.
 expr: |
-  sum by (namespace) (cnpg_collector_last_failed_backup_timestamp{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"})
+  sum by (namespace) (barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"})
   >
-  sum by (namespace) (cnpg_collector_last_available_backup_timestamp{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"})
+  sum by (namespace) (barman_cloud_cloudnative_pg_io_last_available_backup_timestamp{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"})
 for: 5m
 labels:
   severity: warning
