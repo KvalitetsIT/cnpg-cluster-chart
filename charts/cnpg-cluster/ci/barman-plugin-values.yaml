@@ -23,7 +23,7 @@ objectStore:
         name: aws-creds
         key: ACCESS_SECRET_KEY
     wal:
-      compression: gzip
+      compression: zstd
 
 backup:
   scheduledBackups:

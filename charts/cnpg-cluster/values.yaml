@@ -360,19 +360,20 @@ objectStore:
       # @section -- Object Store
       secretAccessKey: {}
     wal:
-      # -- Compression algorithm for WAL files (gzip, bzip2, snappy).
-      # @default -- gzip
+      # -- Compression algorithm for WAL files (bzip2, gzip, lz4, snappy, xz, zstd).
+      # @default -- zstd
       # @section -- Object Store
-      compression: gzip
+      compression: zstd
       # -- Number of parallel WAL upload workers.
       # @default -- 8
       # @section -- Object Store
       maxParallel: 8
     data:
-      # -- Compression algorithm for base backup data files (gzip, bzip2, snappy).
-      # @default -- gzip
+      # -- Compression algorithm for base backup data files (bzip2, gzip, lz4, snappy, zstd).
+      # zstd needs plugin-barman-cloud v0.16.0 or later.
+      # @default -- zstd
       # @section -- Object Store
-      compression: gzip
+      compression: zstd
       # -- Number of parallel data upload workers.
       # @default -- 8
       # @section -- Object Store
