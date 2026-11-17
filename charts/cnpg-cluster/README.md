@@ -179,9 +179,9 @@ Helm chart for deploying CloudNativePG clusters and related resources. Ships wit
 | objectStore.configuration.s3Credentials | object | {} | S3 credentials referencing Kubernetes secret keys. |
 | objectStore.configuration.s3Credentials.accessKeyId | object | {} | Secret key reference for the S3 access key ID. |
 | objectStore.configuration.s3Credentials.secretAccessKey | object | {} | Secret key reference for the S3 secret access key. |
-| objectStore.configuration.wal.compression | string | gzip | Compression algorithm for WAL files (gzip, bzip2, snappy). |
+| objectStore.configuration.wal.compression | string | zstd | Compression algorithm for WAL files (bzip2, gzip, lz4, snappy, xz, zstd). |
 | objectStore.configuration.wal.maxParallel | int | 8 | Number of parallel WAL upload workers. |
-| objectStore.configuration.data.compression | string | gzip | Compression algorithm for base backup data files (gzip, bzip2, snappy). |
+| objectStore.configuration.data.compression | string | zstd | Compression algorithm for base backup data files (bzip2, gzip, lz4, snappy, zstd). zstd needs plugin-barman-cloud v0.16.0 or later. |
 | objectStore.configuration.data.jobs | int | 8 | Number of parallel data upload workers. |
 | objectStore.instanceSidecarConfiguration | object | see values.yaml | Sidecar container configuration for the barman-cloud plugin. |
 | objectStore.instanceSidecarConfiguration.resources.limits.memory | string | 512Mi | Memory limit for the barman-cloud sidecar. |
@@ -280,7 +280,7 @@ objectStore:
         name: aws-creds
         key: ACCESS_SECRET_KEY
     wal:
-      compression: gzip
+      compression: zstd
 
 backup:
   scheduledBackups:
