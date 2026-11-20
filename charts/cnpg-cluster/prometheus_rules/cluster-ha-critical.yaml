@@ -15,9 +15,9 @@ annotations:
     instances. The replaced instance may need some time to catch-up with the cluster primary instance.
   runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHACritical.md
 expr: |
-  max by (job) (cnpg_pg_replication_streaming_replicas{namespace="{{ .namespace }}"} - cnpg_pg_replication_is_wal_receiver_up{namespace="{{ .namespace }}"}) < 1
+  max by (job) (cnpg_pg_replication_streaming_replicas{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"} - cnpg_pg_replication_is_wal_receiver_up{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) < 1
     and on (job)
-  (max by (job) (cnpg_collector_replica_mode{namespace="{{ .namespace }}"}) == 0)
+  (max by (job) (cnpg_collector_replica_mode{namespace="{{ .namespace }}", pod=~"{{ .podSelector }}"}) == 0)
 for: 5m
 labels:
   severity: critical
