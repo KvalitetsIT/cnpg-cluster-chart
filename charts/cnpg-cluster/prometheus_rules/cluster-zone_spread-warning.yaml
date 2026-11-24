@@ -1,7 +1,11 @@
 {{- $alert := "CNPGClusterZoneSpreadWarning" -}}
-{{- /* Without a zone spread constraint the instances are not meant to be in separate zones, so the alert
-       would fire permanently wherever kube_node_labels is exported, and say nothing useful anywhere else. */ -}}
+{{- /* Without zone spreading the instances are not meant to be in separate zones, so the alert would fire
+       permanently wherever kube_node_labels is exported, and say nothing useful anywhere else.
+       CNPG spreads on zones either through topologySpreadConstraints or through its own pod anti-affinity. */ -}}
 {{- $zoneSpread := false -}}
+{{- with .Values.affinity -}}
+{{- if and (ne .enablePodAntiAffinity false) (eq .topologyKey "topology.kubernetes.io/zone") -}}{{- $zoneSpread = true -}}{{- end -}}
+{{- end -}}
 {{- range .Values.topologySpreadConstraints -}}
 {{- if eq .topologyKey "topology.kubernetes.io/zone" -}}{{- $zoneSpread = true -}}{{- end -}}
 {{- end -}}
