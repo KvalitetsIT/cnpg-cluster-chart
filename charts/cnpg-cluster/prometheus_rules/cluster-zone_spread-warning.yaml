@@ -1,5 +1,11 @@
 {{- $alert := "CNPGClusterZoneSpreadWarning" -}}
-{{- if not (has $alert .excludeRules) -}}
+{{- /* Without a zone spread constraint the instances are not meant to be in separate zones, so the alert
+       would fire permanently wherever kube_node_labels is exported, and say nothing useful anywhere else. */ -}}
+{{- $zoneSpread := false -}}
+{{- range .Values.topologySpreadConstraints -}}
+{{- if eq .topologyKey "topology.kubernetes.io/zone" -}}{{- $zoneSpread = true -}}{{- end -}}
+{{- end -}}
+{{- if and (not (has $alert .excludeRules)) $zoneSpread -}}
 alert: {{ $alert }}
 annotations:
   summary: CNPG Cluster instances in the same zone.
