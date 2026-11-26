@@ -7,9 +7,10 @@ annotations:
     CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" is experiencing a very high physical replication lag of {{ "{{ $value | humanizeDuration }}" }}.
 
     High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
+    Measured on the primary (pg_stat_replication.replay_lag), so long transactions without commits do not count as lag.
   runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
 expr: |
-  max(cnpg_pg_replication_lag{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) > 15
+  max(cnpg_pg_stat_replication_replay_lag_seconds{namespace="{{ .namespace }}",pod=~"{{ .podSelector }}"}) > 15
 for: 5m
 labels:
   severity: critical
