@@ -4,7 +4,7 @@ alert: {{ $alert }}
 annotations:
   summary: CNPG Cluster very high physical replication lag
   description: |-
-    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" is experiencing a very high physical replication lag of {{ "{{ $value }}" }}ms.
+    CloudNativePG Cluster "{{ .namespace }}/{{ .cluster }}" is experiencing a very high physical replication lag of {{ "{{ $value | humanizeDuration }}" }}.
 
     High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
   runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
